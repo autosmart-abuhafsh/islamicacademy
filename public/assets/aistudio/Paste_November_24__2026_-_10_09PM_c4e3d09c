@@ -1,0 +1,1344 @@
+# PRODUCT REQUIREMENTS DOCUMENT (PRD)
+# ISLAMIC ACADEMY PORTAL
+## Integrated Academic Management, Interactive Learning & Digital Knowledge Library
+
+---
+
+# 1. PROJECT OVERVIEW
+
+Buat sebuah aplikasi web profesional bernama **Islamic Academy Portal**, yaitu platform manajemen akademi pendidikan Islam terintegrasi yang menggabungkan sistem administrasi akademik, manajemen santri, pengajar, program pembelajaran, LMS interaktif, perpustakaan digital, dokumentasi kitab, forum tanya jawab, serta monitoring akademik.
+
+Aplikasi ini bukan sekadar website profil atau dashboard statis. Sistem harus memiliki fungsi operasional yang nyata, database persisten, autentikasi pengguna, pembatasan hak akses, pengelolaan dokumen, dan hubungan data antarmodul.
+
+Platform digunakan oleh pengelola akademi, administrator, pengajar, dan santri.
+
+### Tujuan Utama
+
+1. Mempermudah pengelolaan administrasi santri dan pengajar.
+2. Menyatukan manajemen program, kelas, jadwal, dan pendaftaran.
+3. Menyediakan sistem pembelajaran online yang terstruktur.
+4. Menghadirkan perpustakaan digital sebagai pusat dokumentasi keilmuan Islam.
+5. Mengarsipkan kitab, sumber referensi, fatwa, dan materi pembelajaran secara bertanggung jawab.
+6. Memudahkan santri mengikuti pembelajaran melalui Student Dashboard.
+7. Memudahkan pengelola memonitor seluruh kegiatan akademik dan aktivitas pengguna.
+
+---
+
+# 2. DESIGN SYSTEM & VISUAL IDENTITY
+
+Gunakan konsep desain premium Islamic Academic Institution dengan pendekatan modern, elegan, minimalis, profesional, dan tetap memiliki identitas keislaman.
+
+### 2.1 Color Palette
+
+Gunakan warna berikut sebagai standar keseluruhan aplikasi.
+
+- Emerald: #087451 — warna utama, tombol utama, navigasi aktif, identitas akademi.
+- Ivory: #F5F0E4 — latar belakang utama, area konten, dan ruang baca.
+- Soft Gold: #C5A45B — aksen premium, garis dekoratif, ikon, dan penanda khusus.
+- Navy: #14283F — teks utama, sidebar tertentu, dashboard akademik.
+- White: #FFFFFF — kartu, panel, dan area formulir.
+
+Hindari penggunaan warna yang terlalu mencolok.
+
+### 2.2 Islamic Geometric Elements
+
+Gunakan pola geometri Islam secara subtil dan elegan.
+
+Penempatan:
+- Background hero atau header.
+- Dekorasi sudut kartu.
+- Banner perpustakaan.
+- Pembatas bagian halaman.
+- Ornamen tipis pada halaman login.
+
+Jangan menggunakan ornamen berlebihan sehingga mengganggu keterbacaan.
+
+### 2.3 UI/UX Design
+
+- Modern SaaS Dashboard.
+- Premium Islamic Academic Interface.
+- Sidebar navigasi yang dapat diperluas dan diperkecil.
+- Topbar dengan pencarian, notifikasi, dan profil.
+- Card-based dashboard.
+- Tabel data profesional dengan pencarian, filter, pagination, dan sorting.
+- Modal untuk tambah dan edit data.
+- Form menggunakan validasi yang jelas.
+- Empty state, loading state, success state, dan error state.
+- Toast notification untuk setiap tindakan penting.
+- Responsive layout untuk desktop, tablet, dan smartphone.
+
+### 2.4 Design Consistency
+
+Seluruh modul harus menggunakan design system yang sama.
+
+Jangan membuat setiap halaman memiliki gaya visual berbeda.
+
+Gunakan tipografi yang mendukung Bahasa Indonesia, Bahasa Arab, dan transliterasi Latin. Pastikan teks Arab memiliki dukungan RTL (Right-to-Left), sedangkan teks Indonesia menggunakan LTR (Left-to-Right).
+
+---
+
+# 3. APPLICATION STRUCTURE
+
+Aplikasi dibagi menjadi tiga lingkungan utama.
+
+## A. PUBLIC PORTAL
+
+Halaman yang dapat diakses pengunjung tanpa login.
+
+Menu:
+1. Beranda.
+2. Profil Akademi.
+3. Katalog Program.
+4. Informasi Kelas dan Jadwal.
+5. Papan Pengumuman.
+6. Perpustakaan Digital.
+7. Fatwa dan Tanya Jawab yang telah dipublikasikan.
+8. Pendaftaran.
+9. Login.
+
+## B. USER PORTAL
+
+Halaman khusus pengguna yang telah login.
+
+Terdiri dari:
+- Student Dashboard.
+- Teacher Dashboard.
+
+## C. ADMINISTRATION PORTAL
+
+Halaman khusus pengelola untuk mengontrol keseluruhan aplikasi.
+
+Terdiri dari:
+- Admin Dashboard.
+- Academic Management.
+- LMS Management.
+- Digital Library Management.
+- Knowledge & Fatwa Management.
+- Monitoring & Reporting.
+- System Settings.
+
+Ketiga lingkungan tersebut harus terhubung dengan satu sistem akun dan database.
+
+---
+
+# 4. USER ROLE & ACCESS MANAGEMENT
+
+Buat sistem autentikasi dan Role-Based Access Control (RBAC).
+
+### 4.1 Super Admin
+
+Memiliki akses penuh terhadap seluruh aplikasi.
+
+Hak akses:
+- Mengelola semua administrator.
+- Mengelola santri dan pengajar.
+- Mengelola program, kelas, dan jadwal.
+- Mengelola perpustakaan.
+- Mengelola fatwa dan forum.
+- Mengakses seluruh laporan.
+- Mengatur hak akses.
+- Mengatur konfigurasi sistem.
+- Melihat seluruh aktivitas pengguna.
+
+### 4.2 Admin Akademik
+
+- Mengelola data santri.
+- Mengelola pengajar.
+- Mengelola pendaftaran.
+- Mengelola program dan kelas.
+- Mengelola jadwal.
+- Mengakses laporan akademik.
+
+### 4.3 Admin Perpustakaan
+
+- Menambahkan dan mengedit kitab.
+- Mengelola silsilah dan kategori kitab.
+- Mengunggah dokumen.
+- Menambahkan tautan eksternal.
+- Mengelola metadata.
+- Mengatur status publikasi katalog.
+- Mengelola Smart Library Search.
+
+### 4.4 Admin Konten / Moderator
+
+- Mengelola pengumuman.
+- Mengelola publikasi informasi.
+- Memoderasi pertanyaan.
+- Mengelola publikasi fatwa sesuai kewenangan.
+- Meninjau konten sebelum dipublikasikan.
+
+### 4.5 Pengajar
+
+- Melihat kelas yang menjadi tanggung jawabnya.
+- Mengelola materi kelas.
+- Mengatur tautan Zoom.
+- Mengelola absensi.
+- Membuat tugas dan ujian.
+- Memeriksa tugas.
+- Memberikan nilai.
+- Melihat progres santri.
+- Menjawab pertanyaan sesuai penugasan.
+
+### 4.6 Santri
+
+- Melihat profil sendiri.
+- Melihat program dan kelas yang diikuti.
+- Mengakses jadwal.
+- Mengakses materi sesuai hak akses.
+- Mengikuti kelas Zoom.
+- Mengirim tugas.
+- Mengikuti ujian.
+- Melihat absensi dan nilai.
+- Melihat progres pembelajaran.
+- Mengakses perpustakaan yang diizinkan.
+- Mengirim pertanyaan melalui forum.
+
+### 4.7 Permission Management
+
+Buat pengaturan hak akses yang fleksibel.
+
+Super Admin dapat:
+- Membuat akun administrator.
+- Menentukan role.
+- Mengaktifkan atau menonaktifkan akun.
+- Mengatur akses setiap modul.
+- Menentukan izin melihat, menambahkan, mengedit, menghapus, dan mempublikasikan data.
+
+Jangan hanya menyembunyikan tombol di frontend. Setiap akses data dan operasi harus diperiksa kembali di backend.
+
+---
+
+# 5. ADMIN DASHBOARD
+
+Buat halaman utama administrator yang berfungsi sebagai pusat kendali akademi.
+
+### 5.1 Dashboard Overview
+
+Tampilkan ringkasan:
+
+- Total santri.
+- Total pengajar.
+- Total administrator.
+- Total program.
+- Total kelas aktif.
+- Total pendaftaran.
+- Total materi.
+- Total koleksi kitab.
+- Total pertanyaan.
+- Aktivitas akademik terbaru.
+
+### 5.2 Monitoring Overview
+
+Sediakan visualisasi:
+- Grafik jumlah santri.
+- Grafik pendaftaran berdasarkan periode.
+- Statistik kehadiran.
+- Statistik penyelesaian tugas.
+- Statistik hasil ujian.
+- Aktivitas pengguna.
+- Program yang sedang berjalan.
+
+Semua angka harus berasal dari database, bukan angka contoh permanen.
+
+### 5.3 Recent Activities
+
+Tampilkan aktivitas terbaru, misalnya:
+- Santri baru mendaftar.
+- Pengajar menambahkan materi.
+- Jadwal kelas diperbarui.
+- Tugas dikumpulkan.
+- Nilai diterbitkan.
+- Kitab baru ditambahkan.
+- Pertanyaan baru masuk.
+
+---
+
+# 6. STUDENT & TEACHER MANAGEMENT
+
+Buat modul manajemen santri dan pengajar.
+
+### 6.1 Student Management
+
+Fitur:
+- Tambah santri.
+- Edit data santri.
+- Hapus atau arsipkan santri.
+- Aktifkan dan nonaktifkan akun.
+- Pencarian santri.
+- Filter berdasarkan program dan kelas.
+- Melihat riwayat akademik.
+- Melihat absensi dan nilai.
+- Melihat status keikutsertaan.
+
+Informasi santri:
+- ID santri.
+- Nama lengkap.
+- Username atau email.
+- Nomor WhatsApp.
+- Foto profil.
+- Jenis kelamin jika diperlukan oleh lembaga.
+- Alamat atau asal kota jika diperlukan.
+- Tanggal bergabung.
+- Program yang diikuti.
+- Status keanggotaan.
+- Status akun.
+
+### 6.2 Teacher Management
+
+Fitur:
+- Tambah pengajar.
+- Edit profil pengajar.
+- Arsipkan akun pengajar.
+- Atur bidang keahlian.
+- Atur kelas yang diampu.
+- Atur jadwal mengajar.
+- Monitoring aktivitas pengajar.
+
+Informasi pengajar:
+- ID pengajar.
+- Nama lengkap.
+- Email atau username.
+- Nomor WhatsApp.
+- Foto profil.
+- Bidang keahlian.
+- Biografi singkat.
+- Status akun.
+- Daftar kelas yang diampu.
+
+### 6.3 Data Management
+
+Sediakan:
+- Search.
+- Filter.
+- Sorting.
+- Pagination.
+- Detail profile.
+- Export data.
+
+Penghapusan data penting menggunakan mekanisme soft delete atau pengarsipan agar riwayat akademik tidak hilang begitu saja.
+
+---
+
+# 7. PROGRAM, CLASS & ADMISSION MANAGEMENT
+
+Buat sistem manajemen program dan penerimaan santri.
+
+### 7.1 Program Management
+
+Administrator dapat:
+- Membuat program.
+- Mengedit program.
+- Menghapus atau mengarsipkan program.
+- Menambahkan deskripsi.
+- Menambahkan gambar atau banner.
+- Menentukan pengajar.
+- Menentukan durasi.
+- Menentukan tingkat pembelajaran.
+- Menentukan biaya jika diperlukan.
+- Menentukan syarat pendaftaran.
+- Mengatur status program.
+
+Status:
+- Draft.
+- Open Registration.
+- Full.
+- Ongoing.
+- Completed.
+- Archived.
+
+### 7.2 Class Management
+
+Setiap program dapat memiliki beberapa kelas.
+
+Informasi kelas:
+- ID kelas.
+- Nama kelas.
+- Program induk.
+- Pengajar.
+- Daftar santri.
+- Kuota.
+- Jadwal.
+- Tanggal mulai.
+- Tanggal selesai.
+- Status kelas.
+
+### 7.3 Schedule Management
+
+Buat kalender akademik.
+
+Fitur:
+- Tambah jadwal.
+- Edit jadwal.
+- Hapus jadwal.
+- Jadwal berdasarkan kelas.
+- Jadwal berdasarkan pengajar.
+- Kalender mingguan dan bulanan.
+- Status pertemuan.
+- Link kelas online.
+
+Gunakan zona waktu Asia/Jakarta sebagai default.
+
+### 7.4 Admission Management
+
+Sediakan formulir pendaftaran.
+
+Proses:
+1. Pengunjung membuka katalog program.
+2. Memilih program.
+3. Mengisi formulir.
+4. Data masuk ke sistem pendaftaran.
+5. Admin memeriksa pendaftaran.
+6. Admin menyetujui atau menolak.
+7. Jika disetujui, admin menempatkan santri pada kelas.
+8. Santri mendapatkan akun atau akses sesuai kebijakan lembaga.
+
+Status:
+- Pending.
+- Under Review.
+- Approved.
+- Rejected.
+- Enrolled.
+
+### 7.5 Information Board
+
+Buat papan informasi yang dapat dikelola admin.
+
+Isi:
+- Pengumuman resmi.
+- Informasi pendaftaran.
+- Perubahan jadwal.
+- Informasi kelas.
+- Agenda akademik.
+- Informasi penting lainnya.
+
+Setiap informasi memiliki judul, isi, gambar opsional, tanggal publikasi, status, dan target audiens.
+
+---
+
+# 8. LEARNING MANAGEMENT SYSTEM (LMS)
+
+Buat sistem pembelajaran interaktif yang dapat digunakan santri dan pengajar.
+
+## 8.1 Student Dashboard
+
+Dashboard santri harus menjadi pusat aktivitas belajar pribadi.
+
+Tampilkan:
+
+- Selamat datang dan profil santri.
+- Program yang sedang diikuti.
+- Kelas aktif.
+- Jadwal pembelajaran terdekat.
+- Tombol masuk kelas Zoom.
+- Materi terbaru.
+- Tugas yang belum selesai.
+- Ujian yang tersedia.
+- Rekap kehadiran.
+- Nilai terbaru.
+- Persentase progres belajar.
+- Pengumuman akademik.
+
+Setiap santri hanya dapat melihat data akademik miliknya sendiri.
+
+## 8.2 Teacher Dashboard
+
+Tampilkan:
+
+- Kelas yang diampu.
+- Jadwal mengajar.
+- Jumlah santri.
+- Materi yang dikelola.
+- Daftar tugas yang perlu diperiksa.
+- Ujian yang sedang berjalan.
+- Rekap absensi.
+- Aktivitas kelas.
+
+## 8.3 Learning Catalog
+
+Buat katalog pembelajaran yang menampilkan:
+- Nama program.
+- Nama kelas.
+- Pengajar.
+- Deskripsi.
+- Jumlah materi.
+- Jadwal.
+- Tingkat pembelajaran.
+- Status kelas.
+
+Santri dapat membuka ruang belajar sesuai kelas yang diikuti.
+
+## 8.4 Zoom Integration
+
+Sediakan manajemen tautan Zoom secara manual dan fleksibel.
+
+Pengajar atau admin yang memiliki izin dapat:
+- Menambahkan link Zoom.
+- Mengedit link Zoom.
+- Menghapus link Zoom.
+- Mengatur jadwal kelas.
+- Menambahkan Meeting ID.
+- Menambahkan Passcode jika diperlukan.
+- Mengatur keterangan kelas.
+
+Tombol "Masuk Kelas" muncul di Student Dashboard sesuai jadwal dan izin akses.
+
+Link Zoom hanya boleh diakses santri yang terdaftar pada kelas terkait.
+
+Untuk versi awal, gunakan URL Zoom yang dimasukkan secara manual. Tidak perlu membuat integrasi Zoom API terlebih dahulu.
+
+## 8.5 Learning Materials
+
+Setiap kelas dapat memiliki kumpulan materi.
+
+Fitur:
+- Tambah materi.
+- Edit materi.
+- Hapus materi.
+- Upload PDF.
+- Upload dokumen.
+- Upload audio.
+- Upload video.
+- Tambahkan URL eksternal.
+- Tambahkan link YouTube atau platform lain.
+- Atur deskripsi.
+- Atur urutan materi.
+- Atur akses materi.
+
+Tipe materi:
+- PDF.
+- Document.
+- Audio.
+- Video.
+- External URL.
+- Text Lesson.
+
+Santri dapat membuka atau mengunduh materi sesuai hak akses dan izin distribusi.
+
+## 8.6 Attendance Management
+
+Buat sistem absensi per kelas dan per pertemuan.
+
+Status:
+- Present.
+- Absent.
+- Late.
+- Excused.
+
+Pengajar dapat:
+- Membuat sesi pertemuan.
+- Mengisi absensi.
+- Mengedit absensi.
+- Melihat daftar santri.
+- Melihat riwayat kehadiran.
+
+Sistem membuat rekap otomatis berdasarkan data absensi.
+
+## 8.7 Assignment Management
+
+Fitur:
+- Membuat tugas.
+- Menambahkan instruksi.
+- Menambahkan file pendukung.
+- Menentukan tenggat.
+- Menentukan kelas.
+- Santri mengunggah jawaban.
+- Pengajar memeriksa jawaban.
+- Pengajar memberikan nilai.
+- Pengajar memberikan komentar dan koreksi.
+
+Status:
+- Not Submitted.
+- Submitted.
+- Late.
+- Reviewed.
+- Returned for Revision.
+
+## 8.8 Examination & Grading
+
+Buat sistem ujian.
+
+Fitur:
+- Membuat ujian.
+- Mengelola soal.
+- Mengatur durasi.
+- Mengatur tanggal dan waktu.
+- Mengatur batas percobaan.
+- Mengatur nilai maksimal.
+- Menentukan kelas peserta.
+- Penilaian otomatis untuk soal objektif.
+- Penilaian manual untuk soal esai.
+
+Nilai harus dapat disimpan dan dilihat sesuai hak akses.
+
+## 8.9 Learning Progress
+
+Setiap santri memiliki catatan perkembangan.
+
+Tampilkan:
+- Materi yang telah diselesaikan.
+- Materi yang belum diselesaikan.
+- Tugas yang sudah dikumpulkan.
+- Hasil ujian.
+- Persentase kehadiran.
+- Nilai rata-rata.
+- Persentase progres kelas.
+
+Rumus progres harus berdasarkan aktivitas yang benar-benar tercatat, bukan angka yang dibuat secara acak.
+
+---
+
+# 9. DIGITAL LIBRARY & SILSILAH KITAB
+
+Ini merupakan salah satu modul unggulan aplikasi.
+
+Perpustakaan digital harus diposisikan sebagai **Pusat Dokumentasi Keilmuan Islam**, bukan hanya tempat penyimpanan PDF.
+
+Buat sistem katalog ilmiah yang memiliki struktur kategori, metadata, sumber referensi, hak distribusi, dan urutan pembelajaran.
+
+## 9.1 Library Architecture
+
+Struktur:
+
+Silsilah Keilmuan → Subkategori → Katalog Kitab → Detail Kitab → Materi Pendukung.
+
+Sediakan sembilan kategori utama berikut.
+
+### 1. SILSILAH LUGHAH
+Subkategori:
+- Nahwu.
+- Sharaf.
+- Mufradat.
+- Balaghah.
+- Qira'ah.
+- Kitabah.
+
+### 2. SILSILAH TAUHID
+Subkategori:
+- Kitab Akidah.
+- Syarah.
+- Tahapan Pemula.
+- Tahapan Menengah.
+- Tahapan Lanjutan.
+
+### 3. SILSILAH FIKIH
+Subkategori:
+- Ibadah.
+- Muamalah.
+- Fikih Perbandingan.
+- Kaidah Fikih.
+
+### 4. SILSILAH ILMU HADIS
+Subkategori:
+- Musthalah Hadis.
+- Takhrij.
+- Syarah Hadis.
+- Kumpulan Hadis.
+
+### 5. SILSILAH ILMU TAFSIR
+Subkategori:
+- Kitab Tafsir.
+- Ulumul Qur'an.
+- Asbabun Nuzul.
+- Qira'at.
+
+### 6. SILSILAH ADAB
+Subkategori:
+- Adab Penuntut Ilmu.
+- Akhlak.
+- Tarbiyah.
+- Tazkiyah.
+
+### 7. SILSILAH TAJWID
+Subkategori:
+- Makharijul Huruf.
+- Sifat Huruf.
+- Hukum Bacaan.
+- Waqaf dan Ibtida'.
+
+### 8. SILSILAH TARIKH DAN SIRAH
+Subkategori:
+- Sirah Nabawiyah.
+- Sejarah Islam.
+- Biografi Ulama.
+
+### 9. SILSILAH USHUL FIKIH
+Subkategori:
+- Ushul Fikih.
+- Qawa'id Fiqhiyyah.
+- Kaidah Istinbath.
+
+Kategori dan subkategori harus dapat ditambah, diedit, diurutkan, dan dihapus oleh admin perpustakaan dengan tetap menjaga hubungan data kitab.
+
+## 9.2 Book Catalog Management
+
+Admin dapat:
+- Menambahkan kitab.
+- Mengedit informasi kitab.
+- Mengarsipkan kitab.
+- Mengelola sampul.
+- Mengatur silsilah.
+- Mengatur subkategori.
+- Mengelola metadata.
+- Mengelola sumber dan referensi.
+- Menambahkan file atau URL.
+- Mengatur status publikasi.
+
+## 9.3 Book Metadata
+
+Setiap kitab memiliki halaman detail tersendiri.
+
+Metadata yang harus disediakan:
+
+**A. Identitas Kitab**
+- ID kitab.
+- Judul kitab dalam bahasa Arab.
+- Transliterasi.
+- Terjemahan judul jika tersedia.
+- Foto sampul.
+- Deskripsi kitab.
+
+**B. Informasi Pengarang**
+- Nama pengarang.
+- Tahun wafat jika terverifikasi.
+- Biografi singkat.
+- Sumber biografi.
+
+**C. Klasifikasi Keilmuan**
+- Silsilah keilmuan.
+- Subkategori.
+- Bidang ilmu.
+- Tingkat kesulitan.
+- Prasyarat pembelajaran.
+- Urutan belajar.
+- Kitab sebelumnya.
+- Kitab lanjutan.
+
+**D. Informasi Edisi**
+- Bahasa kitab.
+- Nama penerbit.
+- Tahun terbit jika diketahui.
+- Nomor edisi jika tersedia.
+- Jumlah halaman jika terverifikasi.
+- Daftar isi.
+
+**E. Referensi dan Kredibilitas**
+- Sumber informasi bibliografi.
+- Referensi eksternal.
+- Catatan verifikasi.
+- Status kelengkapan metadata.
+- Tanggal pemeriksaan.
+- Petugas yang melakukan pemeriksaan.
+
+**F. Media dan Akses**
+- File PDF.
+- Audio.
+- Video.
+- Link eksternal.
+- Materi syarah.
+- Daftar bab.
+
+## 9.4 Book Verification & Copyright Management
+
+Prioritaskan kredibilitas dan tanggung jawab dokumentasi.
+
+Tambahkan status:
+- Verified: metadata sudah diperiksa.
+- Partially Verified: sebagian informasi belum diperiksa.
+- Unverified: informasi belum terverifikasi.
+- Archived: koleksi diarsipkan.
+
+Tambahkan pengelolaan hak distribusi:
+
+- Public Domain.
+- Licensed.
+- Permission Documented.
+- External Authorized Link.
+- Restricted Access.
+- Metadata Only.
+
+Setiap file PDF atau dokumen hanya boleh diunggah dan disediakan untuk diakses apabila hak distribusinya jelas.
+
+Jangan menyediakan tautan unduhan yang tidak memiliki izin.
+
+Jika status distribusi belum jelas, sistem hanya menampilkan metadata bibliografi tanpa menyediakan file unduhan.
+
+Bedakan informasi yang sudah diverifikasi dengan informasi yang masih perlu pemeriksaan.
+
+## 9.5 Learning Pathway
+
+Buat fitur peta urutan pembelajaran kitab.
+
+Contoh:
+- Kitab tingkat pemula.
+- Kitab tingkat menengah.
+- Kitab tingkat lanjutan.
+
+Setiap kitab dapat memiliki:
+- Prasyarat.
+- Urutan pembelajaran.
+- Referensi kitab sebelumnya.
+- Referensi kitab lanjutan.
+
+Visualisasikan hubungan antarkitab melalui learning pathway.
+
+Jangan mengarang sanad pengajaran atau sanad keilmuan. Informasi semacam itu hanya boleh ditampilkan apabila benar-benar tersedia dan memiliki dokumentasi yang dapat diperiksa.
+
+## 9.6 Smart Library Search
+
+Buat fitur pencarian pintar yang menjadi bagian utama perpustakaan.
+
+Pencarian berdasarkan:
+- Judul Arab.
+- Transliterasi.
+- Terjemahan.
+- Nama pengarang.
+- Kategori.
+- Subkategori.
+- Bidang ilmu.
+- Tingkat pembelajaran.
+- Kata kunci.
+- Deskripsi.
+- Bahasa.
+
+Sediakan:
+- Search bar utama.
+- Filter kategori.
+- Filter pengarang.
+- Filter tingkat pembelajaran.
+- Filter bahasa.
+- Filter status verifikasi.
+- Filter ketersediaan akses.
+
+Pencarian harus mampu menemukan variasi penulisan Arab dan Latin sejauh didukung oleh data pencarian yang tersedia.
+
+Hasil pencarian menampilkan:
+- Sampul kitab.
+- Judul Arab.
+- Judul transliterasi.
+- Pengarang.
+- Kategori.
+- Tingkat kesulitan.
+- Status verifikasi.
+- Keterangan akses.
+
+Ketika pengguna memilih kitab, tampilkan halaman detail lengkap.
+
+---
+
+# 10. CONTENT & DOCUMENT MANAGEMENT
+
+Buat modul pengelolaan materi dan dokumen terpusat.
+
+Admin yang memiliki izin dapat mengelola:
+- PDF.
+- Dokumen.
+- Gambar.
+- Audio.
+- Video.
+- Tautan eksternal.
+- Materi pembelajaran.
+
+Setiap konten memiliki:
+- Judul.
+- Deskripsi.
+- Tipe file.
+- Kategori.
+- Pemilik atau pengunggah.
+- Tanggal unggah.
+- Sumber.
+- Hak akses.
+- Status publikasi.
+
+### Upload Management
+
+Sistem harus mendukung unggahan file ke cloud storage.
+
+Jangan hanya menyimpan nama file di database.
+
+Database menyimpan metadata dan referensi lokasi penyimpanan file.
+
+Terapkan validasi jenis file, ukuran file, izin akses, serta perlindungan dari akses file tanpa otorisasi.
+
+### External URL Management
+
+Admin dapat memasukkan URL dari berbagai sumber eksternal.
+
+Fitur:
+- Tambahkan URL.
+- Edit URL.
+- Hapus URL.
+- Beri judul dan deskripsi.
+- Tampilkan sebagai tautan yang dapat diklik.
+- Buka di tab baru.
+- Atur hak akses.
+
+Pastikan hanya URL HTTP dan HTTPS yang diizinkan.
+
+---
+
+# 11. ISLAMIC KNOWLEDGE & FATWA CENTER
+
+Buat pusat dokumentasi fatwa dan forum tanya jawab.
+
+Pisahkan dengan jelas antara arsip fatwa yang telah diverifikasi dan pertanyaan yang masih dalam proses.
+
+## 11.1 Fatwa Management
+
+Admin berwenang dapat:
+- Membuat publikasi fatwa.
+- Mengedit fatwa.
+- Mengarsipkan fatwa.
+- Menambahkan kategori.
+- Menambahkan sumber asli.
+- Menambahkan pemberi fatwa.
+- Menambahkan tanggal.
+- Menambahkan referensi.
+
+Informasi setiap publikasi:
+- Judul.
+- Pertanyaan atau konteks.
+- Isi jawaban.
+- Nama pemberi fatwa.
+- Sumber.
+- Tanggal.
+- Referensi.
+- Status verifikasi.
+- Pengelola atau pemeriksa.
+
+## 11.2 Question & Answer Forum
+
+Santri dapat:
+- Mengirim pertanyaan.
+- Memilih kategori.
+- Menambahkan judul.
+- Menuliskan pertanyaan.
+- Melihat status pertanyaan.
+- Melihat jawaban setelah dipublikasikan.
+
+Pengajar atau moderator dapat:
+- Meninjau pertanyaan.
+- Memoderasi.
+- Memberikan jawaban.
+- Mengembalikan untuk revisi.
+- Menolak pertanyaan beserta alasannya.
+- Mempublikasikan jawaban setelah pemeriksaan.
+
+Status pertanyaan:
+- Pending Moderation.
+- Waiting for Answer.
+- Under Review.
+- Answered.
+- Published.
+- Rejected.
+
+Pertanyaan yang belum dijawab tidak boleh ditampilkan seolah-olah merupakan fatwa resmi.
+
+Jawaban keagamaan hanya boleh diterbitkan oleh pihak yang mendapatkan kewenangan dari lembaga.
+
+---
+
+# 12. ANALYTICS & REPORTING
+
+Buat pusat monitoring untuk admin dan pengelola.
+
+### 12.1 Academic Reports
+
+Laporan:
+- Total santri.
+- Santri aktif dan nonaktif.
+- Jumlah kelas.
+- Jumlah program.
+- Kehadiran.
+- Nilai.
+- Hasil ujian.
+- Progres pembelajaran.
+
+### 12.2 Teacher Reports
+
+Laporan:
+- Jumlah kelas yang diampu.
+- Jadwal mengajar.
+- Rekap absensi kelas.
+- Tugas yang telah diperiksa.
+- Aktivitas pembelajaran.
+
+### 12.3 Library Reports
+
+Laporan:
+- Total kitab.
+- Total kategori.
+- Koleksi yang sudah diverifikasi.
+- Koleksi yang belum diverifikasi.
+- Penggunaan perpustakaan.
+- Pencarian populer.
+- Materi yang paling banyak diakses.
+
+### 12.4 Operational Reports
+
+Laporan:
+- Aktivitas pengguna.
+- Pendaftaran.
+- Pengumuman.
+- Perubahan data.
+- Aktivitas administrator.
+- Riwayat publikasi.
+
+### 12.5 Export
+
+Sediakan opsi:
+- Export CSV.
+- Tampilan print-friendly.
+- Cetak laporan.
+- Filter periode dan kategori.
+
+Angka laporan harus menggunakan perhitungan berdasarkan data yang benar-benar tercatat.
+
+---
+
+# 13. DATABASE ARCHITECTURE
+
+Gunakan satu database terpusat dan terstruktur.
+
+Seluruh modul harus menggunakan sumber data yang sama.
+
+Entitas utama yang harus dirancang:
+
+1. users
+2. user_profiles
+3. roles
+4. permissions
+5. role_permissions
+6. student_profiles
+7. teacher_profiles
+8. programs
+9. classes
+10. class_enrollments
+11. schedules
+12. announcements
+13. admission_applications
+14. library_categories
+15. library_subcategories
+16. book_authors
+17. books
+18. book_sources
+19. book_media
+20. learning_materials
+21. attendance_sessions
+22. attendance_records
+23. assignments
+24. assignment_submissions
+25. examinations
+26. exam_questions
+27. exam_attempts
+28. grades
+29. fatwas
+30. questions
+31. answers
+32. activity_logs
+33. notifications
+34. system_settings
+
+Buat relasi antartabel dengan foreign key yang sesuai.
+
+Contoh:
+- Satu program dapat memiliki banyak kelas.
+- Satu kelas memiliki banyak santri.
+- Satu kelas dapat memiliki banyak jadwal.
+- Satu kelas memiliki satu atau lebih pengajar sesuai konfigurasi.
+- Satu kelas memiliki banyak materi.
+- Satu santri memiliki banyak catatan absensi.
+- Satu santri memiliki banyak nilai.
+- Satu kategori perpustakaan memiliki banyak subkategori.
+- Satu subkategori memiliki banyak kitab.
+- Satu kitab dapat memiliki beberapa sumber dan media.
+
+Hindari duplikasi data pengguna.
+
+Gunakan ID unik untuk setiap data.
+
+Tambahkan created_at, updated_at, created_by, dan updated_by untuk data yang relevan.
+
+Gunakan mekanisme pengarsipan dan audit log untuk data penting.
+
+---
+
+# 14. TECHNICAL IMPLEMENTATION
+
+Gunakan arsitektur full-stack yang dapat dikembangkan lebih lanjut.
+
+### Rekomendasi teknologi:
+
+Frontend:
+- React.
+- TypeScript.
+- Tailwind CSS.
+- Component-based architecture.
+
+Backend dan Database:
+- Supabase.
+- PostgreSQL.
+- Supabase Authentication.
+- Supabase Storage.
+- Row Level Security (RLS).
+
+Gunakan konfigurasi environment variable untuk kredensial layanan.
+
+Jangan pernah menempatkan service role key atau secret key di frontend.
+
+Buat struktur kode modular:
+- components
+- pages
+- layouts
+- modules
+- services
+- hooks
+- types
+- utils
+- database
+
+Pisahkan logika database dari komponen tampilan.
+
+Gunakan validasi pada frontend dan backend.
+
+Jangan menggunakan localStorage sebagai pengganti database utama.
+
+Jangan membuat login palsu yang hanya mengubah tampilan tanpa autentikasi sungguhan.
+
+Jika koneksi backend belum tersedia, buat halaman konfigurasi dan petunjuk integrasi yang jelas. Jangan mengklaim fitur sudah berfungsi sebelum koneksi berhasil.
+
+---
+
+# 15. SECURITY & DATA INTEGRITY
+
+Prioritaskan keamanan dan konsistensi data.
+
+Ketentuan:
+1. Seluruh pengguna harus login untuk mengakses area privat.
+2. Setiap role memiliki izin masing-masing.
+3. Santri hanya dapat melihat data pribadi dan kelas yang diikutinya.
+4. Pengajar hanya dapat mengelola kelas sesuai penugasan.
+5. Admin perpustakaan tidak otomatis memiliki akses penuh ke data akademik.
+6. File privat hanya dapat diakses pengguna yang berwenang.
+7. URL Zoom tidak ditampilkan kepada pengguna yang tidak terdaftar.
+8. Setiap perubahan data penting tercatat dalam activity log.
+9. Sediakan mekanisme reset password.
+10. Gunakan soft delete untuk data akademik penting.
+11. Terapkan backup database secara berkala.
+12. Validasi file yang diunggah.
+13. Jangan memperlihatkan data pribadi santri kepada pengunjung umum.
+
+---
+
+# 16. NAVIGATION STRUCTURE
+
+### ADMIN SIDEBAR
+
+1. Dashboard
+2. Manajemen Pengguna
+   - Santri
+   - Pengajar
+   - Administrator
+   - Role & Permission
+3. Akademik
+   - Program
+   - Kelas
+   - Jadwal
+   - Pendaftaran
+   - Papan Informasi
+4. LMS
+   - Materi
+   - Absensi
+   - Tugas
+   - Ujian
+   - Nilai
+   - Progres
+5. Perpustakaan Digital
+   - Dashboard Perpustakaan
+   - Silsilah Kitab
+   - Katalog Kitab
+   - Subkategori
+   - Metadata
+   - File & Media
+   - Smart Library Search
+6. Knowledge Center
+   - Publikasi Fatwa
+   - Arsip Jawaban
+   - Forum Pertanyaan
+   - Moderasi
+7. Laporan
+   - Akademik
+   - Pengajar
+   - Perpustakaan
+   - Operasional
+   - Aktivitas Pengguna
+8. Pengaturan Sistem
+
+### STUDENT SIDEBAR
+
+1. Dashboard
+2. Program Saya
+3. Kelas Saya
+4. Kalender Akademik
+5. Materi Pembelajaran
+6. Tugas Saya
+7. Ujian
+8. Absensi
+9. Nilai dan Progres
+10. Perpustakaan Digital
+11. Smart Library Search
+12. Forum Tanya Jawab
+13. Pengumuman
+14. Profil Saya
+
+### TEACHER SIDEBAR
+
+1. Dashboard
+2. Kelas yang Diampu
+3. Jadwal Mengajar
+4. Materi Pembelajaran
+5. Zoom Meeting
+6. Absensi Santri
+7. Tugas
+8. Pemeriksaan Tugas
+9. Ujian
+10. Penilaian
+11. Progres Santri
+12. Forum Tanya Jawab
+13. Profil Saya
+
+Menu ditampilkan secara dinamis sesuai role dan permission pengguna.
+
+---
+
+# 17. MVP & DEVELOPMENT PRIORITIES
+
+Jangan memaksakan seluruh fungsi kompleks selesai dalam satu kali generate.
+
+Bangun dalam tahapan implementasi berikut, tetapi pertahankan satu project dan satu arsitektur.
+
+### PHASE 1 — FOUNDATION
+
+- Design system.
+- Responsive app layout.
+- Authentication.
+- Database connection.
+- Role & permissions.
+- Admin dashboard.
+- Student dashboard.
+- Teacher dashboard.
+- User management.
+
+### PHASE 2 — ACADEMIC MANAGEMENT
+
+- Program.
+- Kelas.
+- Jadwal.
+- Kuota.
+- Pendaftaran.
+- Papan informasi.
+- Manajemen santri dan pengajar.
+
+### PHASE 3 — LMS
+
+- Learning catalog.
+- Materi dan dokumen.
+- Zoom link management.
+- Absensi.
+- Tugas.
+- Ujian.
+- Nilai.
+- Progress tracking.
+
+### PHASE 4 — DIGITAL LIBRARY
+
+- Sembilan silsilah keilmuan.
+- Subkategori.
+- Book catalog.
+- Metadata.
+- Author biography.
+- Copyright management.
+- Upload file.
+- External links.
+- Smart Library Search.
+- Learning pathway.
+
+### PHASE 5 — KNOWLEDGE & REPORTING
+
+- Fatwa management.
+- Question & answer forum.
+- Moderation.
+- Academic analytics.
+- Operational reports.
+- Activity logs.
+- Export and printing.
+
+Setiap phase harus diuji sebelum melanjutkan ke tahap berikutnya.
+
+---
+
+# 18. ACCEPTANCE CRITERIA / DEFINITION OF DONE
+
+Aplikasi belum dianggap selesai hanya karena semua halaman sudah terlihat.
+
+Sistem dinyatakan berhasil apabila:
+
+1. Login dan logout bekerja melalui autentikasi sungguhan.
+2. Role dan permission membatasi akses dengan benar.
+3. Admin dapat menambah, mengedit, dan mengarsipkan santri.
+4. Admin dapat mengelola pengajar.
+5. Program dan kelas tersimpan di database.
+6. Pendaftaran dapat direkam dan diproses.
+7. Jadwal dapat ditambah dan diperbarui.
+8. Pengajar dapat mengelola materi.
+9. Upload file benar-benar tersimpan di cloud storage.
+10. Tautan eksternal dapat dibuka.
+11. Link Zoom dapat diatur dan dibatasi sesuai hak akses.
+12. Absensi dan penilaian dapat disimpan.
+13. Santri dapat melihat progres akademiknya sendiri.
+14. Perpustakaan memiliki sembilan silsilah utama.
+15. Kitab memiliki halaman metadata tersendiri.
+16. Smart Library Search dapat mencari koleksi berdasarkan metadata.
+17. Status verifikasi dan hak distribusi dapat dikelola.
+18. Pengajuan pertanyaan memiliki alur moderasi.
+19. Fatwa dapat dipublikasikan oleh pihak berwenang.
+20. Dashboard monitoring mengambil data dari database.
+21. Data tidak hilang ketika halaman dimuat ulang.
+22. Aplikasi berfungsi pada desktop dan perangkat mobile.
+23. Tidak terdapat tombol utama yang hanya menjadi dekorasi.
+24. Error ditampilkan secara informatif dan dapat ditangani.
+
+---
+
+# 19. FINAL INSTRUCTION FOR GOOGLE AI STUDIO
+
+Bertindaklah sebagai Senior Full-Stack Developer, System Architect, Database Architect, dan Professional UI/UX Designer.
+
+Bangun Islamic Academy Portal berdasarkan seluruh persyaratan dalam dokumen ini.
+
+PRIORITAS UTAMA:
+
+- Jangan hanya membuat prototype visual.
+- Jangan menggunakan dummy data sebagai pengganti fungsi database.
+- Jangan membuat sistem login simulasi.
+- Jangan membuat setiap modul terpisah tanpa integrasi.
+- Jangan menghilangkan fitur yang sudah ditentukan.
+- Jangan membuat komponen yang terlihat dapat digunakan tetapi tidak memiliki fungsi.
+- Jangan menampilkan data santri dan pengajar secara tidak terkontrol.
+- Jangan mengarang metadata kitab, biografi, sumber, atau status verifikasi.
+- Jangan menyediakan dokumen yang tidak memiliki kejelasan izin distribusi.
+
+Gunakan satu arsitektur aplikasi, satu sistem autentikasi, satu database, dan sistem hak akses terintegrasi.
+
+Jaga konsistensi design system Emerald, Ivory, Gold, Navy, dan Islamic Geometric.
+
+Buat aplikasi yang profesional, premium, responsif, mudah digunakan, modular, dan siap dikembangkan menjadi platform pendidikan Islam berskala lebih besar.
+
+Mulailah dengan membangun fondasi aplikasi, struktur database, autentikasi, role management, layout, dan dashboard utama.
+
+Setelah fondasi berjalan, lanjutkan implementasi setiap phase tanpa merusak modul yang telah selesai.
+
+Setiap kali melakukan pengembangan lanjutan, pertahankan struktur database, komponen, fungsi, desain, dan integrasi yang sudah ada.
+
+**HASIL AKHIR YANG DIHARAPKAN:**
+
+Sebuah Islamic Academy Portal yang benar-benar berfungsi sebagai pusat manajemen akademik, pembelajaran interaktif, perpustakaan digital, dokumentasi keilmuan Islam, dan monitoring lembaga dalam satu platform terintegrasi.

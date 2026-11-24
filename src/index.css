@@ -1,0 +1,227 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Cormorant Garamond', Georgia, serif;
+    --font-arabic: 'Amiri', serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #F5F0E4;
+    color: #14283F;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    overflow-x: hidden;
+  }
+
+  html.dark body {
+    background-color: #08101C;
+    color: #F5F0E4;
+  }
+}
+
+.font-display {
+  font-family: var(--font-serif);
+}
+
+.font-arabic {
+  font-family: var(--font-arabic);
+  direction: rtl;
+  line-height: 1.85;
+}
+
+.font-mono-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.islamic-pattern-subtle {
+  background-image:
+    radial-gradient(circle at 12px 12px, rgba(197, 164, 91, 0.16) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 36px 36px, rgba(8, 116, 81, 0.11) 1.5px, transparent 1.5px);
+  background-size: 48px 48px;
+}
+
+/* ==========================================================================
+   ADAPTIVE DARK MODE THEME ENGINE (html.dark)
+   Maps Warm Ivory & White Scholarly Surfaces to Nocturnal Obsidian & Slate
+   ========================================================================== */
+html.dark .bg-\[\#F5F0E4\] {
+  background-color: #08101C !important;
+}
+
+html.dark .bg-\[\#F5F0E4\]\/60,
+html.dark .bg-\[\#F5F0E4\]\/55,
+html.dark .bg-\[\#F5F0E4\]\/50,
+html.dark .bg-\[\#F5F0E4\]\/45,
+html.dark .bg-\[\#F5F0E4\]\/40,
+html.dark .bg-\[\#F5F0E4\]\/35,
+html.dark .bg-\[\#F5F0E4\]\/30 {
+  background-color: rgba(20, 38, 62, 0.78) !important;
+}
+
+html.dark .bg-white {
+  background-color: #101D2F !important;
+  color: #F5F0E4;
+}
+
+html.dark .bg-white\/95 {
+  background-color: rgba(16, 29, 47, 0.94) !important;
+}
+
+html.dark .text-\[\#14283F\] {
+  color: #F5F0E4 !important;
+}
+
+html.dark .text-\[\#14283F\]\/90 {
+  color: rgba(245, 240, 228, 0.92) !important;
+}
+
+html.dark .text-\[\#14283F\]\/85,
+html.dark .text-\[\#14283F\]\/80 {
+  color: rgba(245, 240, 228, 0.84) !important;
+}
+
+html.dark .text-\[\#14283F\]\/75,
+html.dark .text-\[\#14283F\]\/70 {
+  color: rgba(245, 240, 228, 0.74) !important;
+}
+
+html.dark .text-\[\#14283F\]\/65,
+html.dark .text-\[\#14283F\]\/60,
+html.dark .text-\[\#14283F\]\/55,
+html.dark .text-\[\#14283F\]\/50 {
+  color: rgba(245, 240, 228, 0.62) !important;
+}
+
+html.dark .text-\[\#087451\] {
+  color: #34D399 !important;
+}
+
+html.dark .border-\[\#14283F\]\/10,
+html.dark .border-\[\#14283F\]\/15,
+html.dark .border-\[\#14283F\]\/20 {
+  border-color: rgba(197, 164, 91, 0.24) !important;
+}
+
+html.dark .divide-\[\#14283F\]\/10 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(197, 164, 91, 0.16) !important;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea {
+  background-color: #0B1524 !important;
+  color: #F5F0E4 !important;
+  border-color: rgba(197, 164, 91, 0.32) !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: rgba(245, 240, 228, 0.45) !important;
+}
+
+html.dark .hover\:bg-\[\#F5F0E4\]:hover,
+html.dark .hover\:bg-\[\#F5F0E4\]\/40:hover,
+html.dark .hover\:bg-\[\#F5F0E4\]\/35:hover {
+  background-color: rgba(197, 164, 91, 0.14) !important;
+}
+
+/* ==========================================================================
+   CELESTIAL ILLUMINATION & LOADING KEYFRAME ANIMATIONS
+   ========================================================================== */
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinReverseSlow {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes floatNur {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(-16px) scale(1.15);
+    opacity: 0.85;
+  }
+}
+
+@keyframes pulseAura {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.82;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes goldShimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 28s linear infinite;
+}
+
+.animate-spin-reverse-slow {
+  animation: spinReverseSlow 22s linear infinite;
+}
+
+.animate-float-nur {
+  animation: floatNur 5.5s ease-in-out infinite;
+}
+
+.animate-pulse-aura {
+  animation: pulseAura 6s ease-in-out infinite;
+}
+
+.text-gold-shimmer {
+  background: linear-gradient(
+    90deg,
+    #C5A45B 0%,
+    #F8E5A8 35%,
+    #FFFFFF 50%,
+    #F8E5A8 65%,
+    #C5A45B 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: goldShimmer 6.5s linear infinite;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+}

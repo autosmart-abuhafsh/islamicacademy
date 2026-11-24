@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Islamic Academy Portal Logo">
+  <defs>
+    <linearGradient id="bgNavy" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14283F" />
+      <stop offset="55%" stop-color="#0D1D30" />
+      <stop offset="100%" stop-color="#087451" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F1D792" />
+      <stop offset="50%" stop-color="#C5A45B" />
+      <stop offset="100%" stop-color="#9A7B38" />
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0E9F6E" />
+      <stop offset="100%" stop-color="#065F46" />
+    </linearGradient>
+    <radialGradient id="nurGlow" cx="50%" cy="45%" r="50%">
+      <stop offset="0%" stop-color="#F1D792" stop-opacity="0.38" />
+      <stop offset="65%" stop-color="#087451" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#14283F" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Outer Rounded Medallion Base -->
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="url(#bgNavy)" stroke="url(#goldGrad)" stroke-width="6" />
+  <circle cx="128" cy="128" r="102" fill="url(#nurGlow)" />
+
+  <!-- Rub el Hizb (8-Pointed Islamic Geometric Star) -->
+  <g transform="translate(128,128)">
+    <rect x="-68" y="-68" width="136" height="136" rx="8" fill="none" stroke="url(#goldGrad)" stroke-width="4.5" opacity="0.9" />
+    <rect x="-68" y="-68" width="136" height="136" rx="8" fill="url(#emeraldGrad)" fill-opacity="0.35" stroke="url(#goldGrad)" stroke-width="4.5" transform="rotate(45)" />
+    <circle cx="0" cy="0" r="56" fill="#102136" stroke="url(#goldGrad)" stroke-width="2.5" />
+  </g>
+
+  <!-- Classical Mosque Mihrab Arch & Crescent Finial -->
+  <path d="M128 46 C128 46 135 54 135 61 C135 65 132 68 128 68 C124 68 121 65 121 61 C121 54 128 46 128 46 Z" fill="url(#goldGrad)" />
+  <path d="M98 118 C98 92 114 78 128 70 C142 78 158 92 158 118" fill="none" stroke="url(#goldGrad)" stroke-width="3" stroke-linecap="round" opacity="0.85" />
+
+  <!-- Illuminated Rays from Kitab -->
+  <g stroke="url(#goldGrad)" stroke-width="2.2" stroke-linecap="round" opacity="0.85">
+    <line x1="128" y1="86" x2="128" y2="100" />
+    <line x1="106" y1="92" x2="113" y2="104" />
+    <line x1="150" y1="92" x2="143" y2="104" />
+  </g>
+
+  <!-- Open Classical Kitab (Turats Manuscript) -->
+  <path d="M78 118 C94 114 114 118 128 128 C142 118 162 114 178 118 L178 162 C162 158 142 162 128 172 C114 162 94 158 78 162 Z" fill="#F5F0E4" stroke="url(#goldGrad)" stroke-width="3.5" stroke-linejoin="round" />
+  <line x1="128" y1="127" x2="128" y2="171" stroke="#087451" stroke-width="3" stroke-linecap="round" />
+
+  <!-- Manuscript Lines on Kitab Pages -->
+  <g stroke="#087451" stroke-width="2.2" stroke-linecap="round" opacity="0.85">
+    <line x1="89" y1="130" x2="117" y2="134" />
+    <line x1="89" y1="140" x2="117" y2="144" />
+    <line x1="89" y1="150" x2="117" y2="154" />
+    <line x1="167" y1="130" x2="139" y2="134" />
+    <line x1="167" y1="140" x2="139" y2="144" />
+    <line x1="167" y1="150" x2="139" y2="154" />
+  </g>
+
+  <!-- Rehal (Wooden Book Stand) Base beneath Kitab -->
+  <path d="M96 178 L128 166 L160 178 M110 184 L128 175 L146 184" fill="none" stroke="url(#goldGrad)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

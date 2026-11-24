@@ -1,0 +1,6 @@
+{
+  "name": "Islamic Academy Portal",
+  "description": "Platform manajemen akademi pendidikan Islam terintegrasi dengan LMS Halaqah interaktif, Perpustakaan Digital 9 Silsilah Keilmuan Turats, serta Pusat Fatwa & Bahtsul Masail.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
