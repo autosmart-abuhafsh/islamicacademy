@@ -391,15 +391,15 @@ export function PortalWorkspace({
       </aside>
 
       {/* MAIN WORKSPACE CONTENT */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
         {/* TOPBAR CONTRACT FOR WORKSPACE */}
-        <header className="sticky top-0 z-20 bg-white border-b border-[#14283F]/10 px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4 no-print">
-          <div className="flex items-center gap-3 min-w-0">
+        <header className="sticky top-0 z-20 bg-white border-b border-[#14283F]/10 px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-4 no-print">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <button
               type="button"
               onClick={() => setMobileSidebarOpen(true)}
               aria-label="Buka Navigasi Sidebar"
-              className="lg:hidden p-2 rounded-lg text-[#14283F] hover:bg-[#F5F0E4]"
+              className="lg:hidden p-1.5 rounded-lg text-[#14283F] hover:bg-[#F5F0E4] shrink-0"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -408,7 +408,7 @@ export function PortalWorkspace({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 min-w-0">
+          <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
             <LanguageSwitcher
               language={language}
               onChangeLanguage={onChangeLanguage}
@@ -417,7 +417,7 @@ export function PortalWorkspace({
               type="button"
               onClick={() => setActiveMenu('profile')}
               title="Buka Profil Saya"
-              className="max-w-[140px] sm:max-w-[230px] truncate px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#14283F]/15 bg-[#F5F0E4]/60 text-[#14283F] hover:border-[#087451] flex items-center gap-1.5"
+              className="max-w-[96px] sm:max-w-[220px] truncate px-2 sm:px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#14283F]/15 bg-[#F5F0E4]/60 text-[#14283F] hover:border-[#087451] flex items-center gap-1.5"
             >
               <User className="w-3.5 h-3.5 text-[#087451] shrink-0" />
               <span className="truncate">
@@ -432,7 +432,7 @@ export function PortalWorkspace({
               title={
                 theme === 'dark' ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'
               }
-              className="px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-[#14283F] bg-[#F5F0E4] hover:bg-[#C5A45B]/25 border border-[#C5A45B]/40 rounded-lg flex items-center gap-1.5 whitespace-nowrap"
+              className="p-1.5 sm:px-3 sm:py-1.5 text-xs font-semibold text-[#14283F] bg-[#F5F0E4] hover:bg-[#C5A45B]/25 border border-[#C5A45B]/40 rounded-lg flex items-center gap-1.5 whitespace-nowrap"
             >
               {theme === 'dark' ? (
                 <>
@@ -449,8 +449,36 @@ export function PortalWorkspace({
           </div>
         </header>
 
+        {/* Mobile Touch-Friendly Horizontal Workspace Module Bar */}
+        <nav
+          aria-label="Menu Cepat Portal Mobile"
+          className="lg:hidden bg-white border-b border-[#14283F]/10 px-3 py-2 flex items-center gap-1.5 overflow-x-auto no-print"
+        >
+          {menuGroups
+            .flatMap((g) => g.items)
+            .map((item) => {
+              const Icon = item.icon;
+              const isActive = activeMenu === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveMenu(item.id)}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 flex items-center gap-1.5 transition-colors ${
+                    isActive
+                      ? 'bg-[#087451] text-white'
+                      : 'bg-[#F5F0E4]/75 text-[#14283F]/80 hover:text-[#14283F]'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+        </nav>
+
         {/* WORKSPACE BODY */}
-        <main className="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6">
+        <main className="flex-1 p-3.5 sm:p-6 max-w-7xl w-full mx-auto space-y-5 sm:space-y-6 overflow-x-hidden">
           {/* 1. DASHBOARD VIEW (ROLE-SPECIFIC) */}
           {activeMenu === 'dashboard' && (
             <>
@@ -744,16 +772,16 @@ export function PortalWorkspace({
               ) : (
                 /* C. ADMIN DASHBOARD (PRD Section 5.1, 5.2, 5.3) */
                 <div className="space-y-6">
-                  <div className="bg-[#14283F] text-white rounded-xl p-6 border border-[#C5A45B]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="bg-[#14283F] text-white rounded-xl p-4 sm:p-6 border border-[#C5A45B]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4">
                     <div>
                       <div className="text-xs text-[#C5A45B] font-semibold">
                         Pusat Kendali Akademi · Tahun Akademik{' '}
                         {db.settings.academicYear}
                       </div>
-                      <h1 className="text-xl sm:text-2xl font-display font-bold mt-1">
+                      <h1 className="text-lg sm:text-2xl font-display font-bold mt-1">
                         Admin Dashboard & Monitoring Terintegrasi
                       </h1>
-                      <p className="text-xs text-[#F5F0E4]/80 mt-0.5">
+                      <p className="text-xs text-[#F5F0E4]/80 mt-0.5 leading-relaxed">
                         Seluruh metrik dihitung langsung dari database aktif dan tersinkronisasi secara real-time untuk HP & PC.
                       </p>
                     </div>
@@ -761,7 +789,7 @@ export function PortalWorkspace({
                       <button
                         type="button"
                         onClick={() => setActiveMenu('settings')}
-                        className="px-4 py-2.5 text-xs font-semibold text-white bg-[#087451] hover:bg-[#065d40] rounded-lg flex items-center gap-2 shrink-0"
+                        className="w-full sm:w-auto justify-center px-4 py-2.5 text-xs font-semibold text-white bg-[#087451] hover:bg-[#065d40] rounded-lg flex items-center gap-2 shrink-0"
                       >
                         <Settings className="w-4 h-4" />
                         Pengaturan Sistem & Database
@@ -879,12 +907,12 @@ export function PortalWorkspace({
                             Math.round((cls.studentIds.length / cls.quota) * 100)
                           );
                           return (
-                            <div key={cls.id} className="space-y-1">
-                              <div className="flex items-center justify-between">
-                                <span className="font-semibold text-[#14283F]">
+                            <div key={cls.id} className="space-y-1.5">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-0.5">
+                                <span className="font-semibold text-[#14283F] leading-snug">
                                   {cls.name}
                                 </span>
-                                <span className="font-mono-num text-[#14283F]/70">
+                                <span className="font-mono-num text-[11px] sm:text-xs text-[#087451] sm:text-[#14283F]/70 font-semibold sm:font-normal shrink-0">
                                   {cls.studentIds.length} / {cls.quota} Santri (
                                   {pct}%)
                                 </span>

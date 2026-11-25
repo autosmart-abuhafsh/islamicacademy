@@ -8,25 +8,23 @@ interface ScrollRevealProps {
   className?: string;
 }
 
-/**
- * Provides editorial left/right/up slide-in transitions when visitors view and scroll down the website.
- */
 export function ScrollReveal({
   children,
-  direction = 'left',
+  direction = 'up',
   delay = 0,
   className = '',
 }: ScrollRevealProps) {
-  const initialX = direction === 'left' ? -44 : direction === 'right' ? 44 : 0;
-  const initialY = direction === 'up' ? 28 : 8;
+  const initialX =
+    direction === 'left' ? -24 : direction === 'right' ? 24 : 0;
+  const initialY = direction === 'up' ? 20 : 0;
 
   return (
     <motion.div
       initial={{ opacity: 0, x: initialX, y: initialY }}
       whileInView={{ opacity: 1, x: 0, y: 0 }}
-      viewport={{ once: false, amount: 0.12, margin: '0px 0px -30px 0px' }}
+      viewport={{ once: true, amount: 0.12 }}
       transition={{
-        duration: 0.55,
+        duration: 0.5,
         delay,
         ease: [0.22, 1, 0.36, 1],
       }}

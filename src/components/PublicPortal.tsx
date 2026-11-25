@@ -242,7 +242,7 @@ export function PublicPortal({
   return (
     <div className="min-h-screen flex flex-col bg-[#F5F0E4] text-[#14283F] overflow-x-hidden">
       {/* RESPONSIVE 3-ZONE TOP BAR CONTRACT */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-xs border-b border-[#14283F]/10 px-3 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-2 sm:gap-4">
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-xs border-b border-[#14283F]/10 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-4">
         {/* Zone 1: Brand Emblem & Wordmark */}
         <a
           href="#beranda"
@@ -250,10 +250,10 @@ export function PublicPortal({
             e.preventDefault();
             setActivePage('beranda');
           }}
-          className="flex items-center gap-2 text-sm sm:text-lg font-display font-bold tracking-tight text-[#14283F] whitespace-nowrap shrink-0"
+          className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-lg font-display font-bold tracking-tight text-[#14283F] min-w-0"
         >
-          <IslamicAcademyLogo className="w-7 h-7 sm:w-8 sm:h-8 shrink-0" />
-          <span>Islamic Academy Portal</span>
+          <IslamicAcademyLogo className="w-6 h-6 sm:w-8 sm:h-8 shrink-0" />
+          <span className="truncate">Islamic Academy Portal</span>
         </a>
 
         {/* Zone 2: 5 clean single-line text navigation links */}
@@ -313,7 +313,7 @@ export function PublicPortal({
         </nav>
 
         {/* Zone 3: Language Switcher + Dark/Light Theme Toggle + Primary Portal Action */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
           <LanguageSwitcher
             language={language}
             onChangeLanguage={onChangeLanguage}
@@ -344,7 +344,7 @@ export function PublicPortal({
             <button
               type="button"
               onClick={onEnterWorkspace}
-              className="px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs font-semibold text-white bg-[#087451] hover:bg-[#065d40] rounded-lg transition-colors whitespace-nowrap shrink-0"
+              className="px-2.5 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-semibold text-white bg-[#087451] hover:bg-[#065d40] rounded-lg transition-colors whitespace-nowrap shrink-0"
             >
               Buka Dashboard ({currentUser.fullName.split(' ')[0]})
             </button>
@@ -352,7 +352,7 @@ export function PublicPortal({
             <button
               type="button"
               onClick={() => setIsLoginOpen(true)}
-              className="px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs font-semibold text-white bg-[#087451] hover:bg-[#065d40] rounded-lg transition-colors whitespace-nowrap shrink-0"
+              className="px-2.5 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-semibold text-white bg-[#087451] hover:bg-[#065d40] rounded-lg transition-colors whitespace-nowrap shrink-0"
             >
               Masuk Portal
             </button>
@@ -368,9 +368,41 @@ export function PublicPortal({
         </div>
       </header>
 
+      {/* Mobile Touch-Friendly Horizontal Quick Navigation Bar */}
+      <nav
+        aria-label="Navigasi Cepat Mobile"
+        className="lg:hidden bg-white/95 border-b border-[#14283F]/10 px-3 py-2 flex items-center gap-1.5 overflow-x-auto"
+      >
+        {(
+          [
+            { id: 'beranda', label: 'Beranda' },
+            { id: 'program', label: 'Program & Jadwal' },
+            { id: 'perpustakaan', label: 'Perpustakaan 9 Silsilah' },
+            { id: 'fatwa', label: 'Fatwa & Tanya Jawab' },
+            { id: 'pendaftaran', label: 'Pendaftaran Santri' },
+          ] as const
+        ).map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => {
+              setActivePage(item.id);
+              setMobileMenuOpen(false);
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-colors ${
+              activePage === item.id
+                ? 'bg-[#087451] text-white'
+                : 'bg-[#F5F0E4]/75 text-[#14283F]/80 hover:text-[#14283F]'
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+
       {/* Mobile Dropdown Navigation */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-b border-[#14283F]/10 px-6 py-3 flex flex-col gap-2 text-sm">
+        <div className="lg:hidden bg-white border-b border-[#14283F]/10 px-4 py-3 flex flex-col gap-1.5 text-xs">
           {(
             [
               { id: 'beranda', label: 'Beranda & Profil Akademi' },
@@ -387,8 +419,10 @@ export function PublicPortal({
                 setActivePage(item.id);
                 setMobileMenuOpen(false);
               }}
-              className={`text-left py-2 font-medium ${
-                activePage === item.id ? 'text-[#087451] font-bold' : 'text-[#14283F]'
+              className={`text-left px-3 py-2.5 rounded-lg font-medium ${
+                activePage === item.id
+                  ? 'bg-[#087451]/10 text-[#087451] font-bold'
+                  : 'text-[#14283F] hover:bg-[#F5F0E4]/60'
               }`}
             >
               {item.label}
@@ -398,10 +432,10 @@ export function PublicPortal({
       )}
 
       {/* MAIN CONTENT VIEWPORT */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-10">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-10 overflow-x-hidden">
         {/* PAGE 1: BERANDA & PROFIL AKADEMI */}
         {activePage === 'beranda' && (
-          <div className="space-y-10">
+          <div className="space-y-6 sm:space-y-10">
             {/* Hero Section with Interactive Celestial Light & Sacred Geometry Animation */}
             <section
               onMouseMove={(e) => {
@@ -410,14 +444,14 @@ export function PublicPortal({
                 const y = Math.round(((e.clientY - rect.top) / rect.height) * 100);
                 setSpotlightPos({ x, y });
               }}
-              className="relative overflow-hidden bg-[#14283F] text-white rounded-2xl p-6 sm:p-10 border border-[#C5A45B]/55 shadow-2xl islamic-pattern-subtle"
+              className="relative overflow-hidden bg-[#14283F] text-white rounded-2xl p-4 sm:p-8 lg:p-10 border border-[#C5A45B]/55 shadow-2xl islamic-pattern-subtle"
             >
               {/* Animated Celestial Light Rays, Rotating Shamsa Mandala & Floating Nur Particles */}
               <BerandaCelestialAura spotlightPos={spotlightPos} />
 
-              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                <ScrollReveal direction="left" className="lg:col-span-8 space-y-4">
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-[#C5A45B] font-medium">
+              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+                <ScrollReveal direction="left" className="lg:col-span-8 space-y-3.5 sm:space-y-4">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-[#C5A45B] font-medium">
                     <Sparkles className="w-3.5 h-3.5 text-[#F8E5A8] animate-pulse shrink-0" />
                     <span>{db.settings.academyName}</span>
                     <span aria-hidden="true">·</span>
@@ -425,14 +459,14 @@ export function PublicPortal({
                   </div>
 
                   <p
-                    className="font-arabic text-2xl sm:text-3xl lg:text-4xl font-bold text-left text-gold-shimmer"
+                    className="font-arabic text-xl sm:text-3xl lg:text-4xl font-bold text-left text-gold-shimmer"
                     dir="rtl"
                   >
                     {db.settings.academyArabicName}
                   </p>
 
                   <h1
-                    className="text-2xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-tight"
+                    className="text-xl sm:text-4xl lg:text-5xl font-display font-bold text-white leading-snug sm:leading-tight"
                     style={{ textWrap: 'balance' }}
                   >
                     Pendidikan Akademik Islam Terpadu, Pembelajaran Talaqqi & Pusat Dokumentasi Kitab Turats
@@ -442,11 +476,11 @@ export function PublicPortal({
                     Platform manajemen akademi pendidikan Islam terintegrasi yang menyatukan administrasi santri & asatidzah, LMS interaktif, Perpustakaan Digital 9 Silsilah Keilmuan dengan verifikasi hak distribusi, serta Pusat Fatwa & Tanya Jawab.
                   </p>
 
-                  <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-1 sm:pt-2">
                     <button
                       type="button"
                       onClick={() => setActivePage('pendaftaran')}
-                      className="px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-[#087451] hover:bg-[#065d40] shadow-[0_0_24px_rgba(8,116,81,0.55)] rounded-lg flex items-center gap-2 transition-all"
+                      className="w-full sm:w-auto justify-center px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-[#087451] hover:bg-[#065d40] shadow-[0_0_24px_rgba(8,116,81,0.55)] rounded-lg flex items-center gap-2 transition-all"
                     >
                       Daftar Santri Baru
                       <ArrowRight className="w-4 h-4" />
@@ -454,7 +488,7 @@ export function PublicPortal({
                     <button
                       type="button"
                       onClick={() => setActivePage('perpustakaan')}
-                      className="px-5 py-2.5 text-xs sm:text-sm font-semibold text-[#F5F0E4] bg-white/10 hover:bg-white/20 border border-[#C5A45B]/55 rounded-lg transition-all backdrop-blur-xs"
+                      className="w-full sm:w-auto justify-center px-5 py-2.5 text-xs sm:text-sm font-semibold text-[#F5F0E4] bg-white/10 hover:bg-white/20 border border-[#C5A45B]/55 rounded-lg flex items-center transition-all backdrop-blur-xs"
                     >
                       Jelajahi 9 Silsilah Kitab
                     </button>
@@ -465,7 +499,7 @@ export function PublicPortal({
                 <ScrollReveal
                   direction="right"
                   delay={0.12}
-                  className="lg:col-span-4 bg-[#0D1B2D]/75 backdrop-blur-md border border-[#C5A45B]/45 rounded-xl p-5 sm:p-6 space-y-4 shadow-xl"
+                  className="lg:col-span-4 bg-[#0D1B2D]/75 backdrop-blur-md border border-[#C5A45B]/45 rounded-xl p-4 sm:p-6 space-y-3.5 sm:space-y-4 shadow-xl"
                 >
                   <div className="text-xs font-semibold text-[#C5A45B] border-b border-white/10 pb-2 flex items-center justify-between">
                     <span>Profil & Statistik Akademik</span>
@@ -591,9 +625,12 @@ export function PublicPortal({
 
             {/* Featured Programs Preview */}
             <section className="space-y-4">
-              <ScrollReveal direction="left" className="flex items-center justify-between">
+              <ScrollReveal
+                direction="left"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+              >
                 <div>
-                  <h2 className="text-xl font-display font-bold text-[#14283F]">
+                  <h2 className="text-lg sm:text-xl font-display font-bold text-[#14283F]">
                     Program Studi & Halaqah Keilmuan
                   </h2>
                   <p className="text-xs text-[#14283F]/70">
@@ -603,14 +640,14 @@ export function PublicPortal({
                 <button
                   type="button"
                   onClick={() => setActivePage('program')}
-                  className="text-xs font-semibold text-[#087451] hover:underline flex items-center gap-1"
+                  className="text-xs font-semibold text-[#087451] hover:underline flex items-center gap-1 self-start sm:self-auto"
                 >
                   Lihat Semua Program & Jadwal
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </ScrollReveal>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                 {db.programs
                   .filter((p) => p.status !== 'Archived')
                   .map((prg, idx) => (
@@ -618,10 +655,10 @@ export function PublicPortal({
                       key={prg.id}
                       direction={idx % 2 === 0 ? 'left' : 'right'}
                       delay={(idx % 2) * 0.08}
-                      className="bg-white rounded-xl p-6 border border-[#14283F]/10 flex flex-col justify-between space-y-4"
+                      className="bg-white rounded-xl p-4 sm:p-6 border border-[#14283F]/10 flex flex-col justify-between space-y-4"
                     >
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between text-xs text-[#14283F]/65">
+                        <div className="flex flex-wrap items-center justify-between gap-1 text-xs text-[#14283F]/65">
                           <span className="font-mono-num font-semibold text-[#087451]">
                             {prg.code} · Tingkat {prg.level}
                           </span>
@@ -629,13 +666,13 @@ export function PublicPortal({
                         </div>
                         {prg.arabicTitle && (
                           <p
-                            className="font-arabic text-lg font-bold text-[#14283F]"
+                            className="font-arabic text-base sm:text-lg font-bold text-[#14283F]"
                             dir="rtl"
                           >
                             {prg.arabicTitle}
                           </p>
                         )}
-                        <h3 className="text-base font-bold text-[#14283F]">
+                        <h3 className="text-sm sm:text-base font-bold text-[#14283F]">
                           {prg.title}
                         </h3>
                         <p className="text-xs text-[#14283F]/75 leading-relaxed">
@@ -643,7 +680,7 @@ export function PublicPortal({
                         </p>
                       </div>
 
-                      <div className="pt-3 border-t border-[#14283F]/10 flex flex-wrap items-center justify-between gap-3 text-xs">
+                      <div className="pt-3 border-t border-[#14283F]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
                         <div className="text-[#14283F]/70">
                           Durasi: <strong>{prg.duration}</strong> · {prg.fee}
                         </div>
@@ -656,7 +693,7 @@ export function PublicPortal({
                             }));
                             setActivePage('pendaftaran');
                           }}
-                          className="px-3.5 py-2 text-xs font-semibold text-white bg-[#087451] hover:bg-[#065d40] rounded-lg"
+                          className="w-full sm:w-auto text-center justify-center px-3.5 py-2 text-xs font-semibold text-white bg-[#087451] hover:bg-[#065d40] rounded-lg"
                         >
                           Daftar Program Ini
                         </button>
