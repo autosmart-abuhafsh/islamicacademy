@@ -403,24 +403,17 @@ export function PortalWorkspace({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
-            {/* Role Switcher for Instant Multi-Role Inspection */}
-            <select
-              aria-label="Beralih Role Pengguna"
-              value={currentUser.id}
-              onChange={(e) => {
-                const target = db.users.find((u) => u.id === e.target.value);
-                if (target) onSwitchUser(target);
-              }}
-              className="max-w-[145px] sm:max-w-[260px] truncate px-2 sm:px-2.5 py-1.5 text-xs font-medium rounded-lg border border-[#14283F]/20 bg-[#F5F0E4]/60 text-[#14283F]"
+            <button
+              type="button"
+              onClick={() => setActiveMenu('profile')}
+              title="Buka Profil Saya"
+              className="max-w-[165px] sm:max-w-[260px] truncate px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#14283F]/15 bg-[#F5F0E4]/60 text-[#14283F] hover:border-[#087451] flex items-center gap-1.5"
             >
-              {db.users
-                .filter((u) => u.status === 'Active')
-                .map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.role.toUpperCase()} — {u.fullName.split(',')[0]}
-                  </option>
-                ))}
-            </select>
+              <User className="w-3.5 h-3.5 text-[#087451] shrink-0" />
+              <span className="truncate">
+                {currentUser.fullName.split(',')[0]}
+              </span>
+            </button>
 
             <button
               type="button"

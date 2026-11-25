@@ -75,8 +75,8 @@ export function PublicPortal({
   // Login & Password Reset Modal State
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'reset'>('login');
-  const [identifier, setIdentifier] = useState('admin');
-  const [password, setPassword] = useState('admin123');
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [resetEmail, setResetEmail] = useState('');
   const [resetWhatsapp, setResetWhatsapp] = useState('');
   const [resetNewPass, setResetNewPass] = useState('');
@@ -1177,6 +1177,7 @@ export function PublicPortal({
                     required
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
+                    placeholder="Masukkan ID Login (username) atau email..."
                     className="w-full px-3.5 py-2.5 rounded-lg border border-[#14283F]/20 bg-white text-sm"
                   />
                 </div>
@@ -1194,65 +1195,9 @@ export function PublicPortal({
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Masukkan kata sandi..."
                     className="w-full px-3.5 py-2.5 rounded-lg border border-[#14283F]/20 bg-white text-sm"
                   />
-                </div>
-
-                {/* Quick Role Selector for Testing All 6 Roles */}
-                <div className="p-3 rounded-lg bg-[#F5F0E4]/75 border border-[#C5A45B]/35 space-y-2">
-                  <div className="text-[11px] font-semibold text-[#14283F]">
-                    Pilih Akun Terdaftar (Uji Coba Hak Akses 6 Role RBAC):
-                  </div>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {[
-                      {
-                        label: 'Super Admin',
-                        user: 'admin',
-                        pass: 'admin123',
-                      },
-                      {
-                        label: 'Admin Akademik',
-                        user: 'akademik',
-                        pass: 'akademik123',
-                      },
-                      {
-                        label: 'Admin Perpustakaan',
-                        user: 'pustaka',
-                        pass: 'pustaka123',
-                      },
-                      {
-                        label: 'Moderator Fatwa',
-                        user: 'moderator',
-                        pass: 'moderator123',
-                      },
-                      {
-                        label: 'Pengajar (Ustadz)',
-                        user: 'ustadz_luqman',
-                        pass: 'pengajar123',
-                      },
-                      {
-                        label: 'Santri (Farhan)',
-                        user: 'santri_farhan',
-                        pass: 'santri123',
-                      },
-                    ].map((preset) => (
-                      <button
-                        key={preset.user}
-                        type="button"
-                        onClick={() => {
-                          setIdentifier(preset.user);
-                          setPassword(preset.pass);
-                        }}
-                        className={`px-2.5 py-1.5 rounded text-left text-[11px] font-medium border transition-colors ${
-                          identifier === preset.user
-                            ? 'bg-[#087451] text-white border-[#087451]'
-                            : 'bg-white text-[#14283F] border-[#14283F]/15 hover:border-[#087451]'
-                        }`}
-                      >
-                        {preset.label}
-                      </button>
-                    ))}
-                  </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-2">

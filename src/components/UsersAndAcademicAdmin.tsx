@@ -7,6 +7,7 @@ import {
   Eye,
   EyeOff,
   KeyRound,
+  Lock,
   Plus,
   Search,
   Shield,
@@ -33,6 +34,7 @@ import {
 import {
   hasPermission,
   validateAccountCredentialsUpdate,
+  verifyOwnerSettingsPasscode,
 } from '../utils/academicLogic';
 
 interface UsersAndAcademicAdminProps {
@@ -93,6 +95,13 @@ export function UsersAndAcademicAdmin({
   const [accountRoleFilter, setAccountRoleFilter] = useState<'ALL' | 'ADMIN' | 'PENGAJAR' | 'SANTRI'>('ALL');
   const [accountSearchQuery, setAccountSearchQuery] = useState('');
   const [visiblePasswordIds, setVisiblePasswordIds] = useState<Record<string, boolean>>({});
+
+  // Owner Security Gate (Kode Pemilik: 2026) for Manajemen Akun & Password
+  const [isOwnerAccountUnlocked, setIsOwnerAccountUnlocked] = useState(false);
+  const [ownerPasscodeInput, setOwnerPasscodeInput] = useState('');
+  const [ownerPasscodeError, setOwnerPasscodeError] = useState('');
+  const [pendingAccountToEdit, setPendingAccountToEdit] =
+    useState<UserAccount | null>(null);
 
   // Account & ID/Password Management Modal (Admin & All Members)
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
@@ -678,7 +687,7 @@ export function UsersAndAcademicAdmin({
     });
   };
 
-  const openEditAccountModal = (acc: UserAccount) => {
+  const launchEditAccountModal = (acc: UserAccount) => {
     setEditingAccount(acc);
     setAccountForm({
       fullName: acc.fullName,
@@ -694,7 +703,42 @@ export function UsersAndAcademicAdmin({
     setIsAccountModalOpen(true);
   };
 
+  const openEditAccountModal = (acc: UserAccount) => {
+    if (!isOwnerAccountUnlocked) {
+      setPendingAccountToEdit(acc);
+      setUserSubTab('admins');
+      return;
+    }
+    launchEditAccountModal(acc);
+  };
+
+  const handleUnlockAccountManagement = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (verifyOwnerSettingsPasscode(ownerPasscodeInput)) {
+      setIsOwnerAccountUnlocked(true);
+      setOwnerPasscodeError('');
+      setOwnerPasscodeInput('');
+      onNotify(
+        'Verifikasi kode pemilik berhasil! Manajemen Akun & Password telah dibuka.',
+        'success'
+      );
+      if (pendingAccountToEdit) {
+        launchEditAccountModal(pendingAccountToEdit);
+        setPendingAccountToEdit(null);
+      }
+    } else {
+      setOwnerPasscodeError(
+        'Kode password pemilik tidak sesuai. Hanya pemilik otoritas yang dapat membuka Manajemen Akun & Password.'
+      );
+      onNotify('Kode password pemilik salah.', 'error');
+    }
+  };
+
   const openCreateAccountModal = () => {
+    if (!isOwnerAccountUnlocked) {
+      setUserSubTab('admins');
+      return;
+    }
     setEditingAccount(null);
     setAccountForm({
       fullName: '',
@@ -925,15 +969,32 @@ export function UsersAndAcademicAdmin({
                 Tambah Pengajar
               </button>
             )}
-            {userSubTab === 'admins' && (
-              <button
-                type="button"
-                onClick={openCreateAccountModal}
-                className="px-4 py-2 text-xs font-semibold text-white bg-[#087451] hover:bg-[#065d40] rounded-lg flex items-center gap-1.5"
-              >
-                <UserPlus className="w-4 h-4" />
-                Tambah Akun Admin / Anggota
-              </button>
+            {userSubTab === 'admins' && isOwnerAccountUnlocked && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOwnerAccountUnlocked(false);
+                    setIsAccountModalOpen(false);
+                    onNotify(
+                      'Manajemen Akun & Password telah dikunci kembali.',
+                      'success'
+                    );
+                  }}
+                  className="px-3.5 py-2 text-xs font-semibold text-[#14283F] bg-[#F5F0E4] hover:bg-[#C5A45B]/25 rounded-lg flex items-center gap-1.5"
+                >
+                  <Lock className="w-3.5 h-3.5 text-[#C5A45B]" />
+                  Kunci Kembali
+                </button>
+                <button
+                  type="button"
+                  onClick={openCreateAccountModal}
+                  className="px-4 py-2 text-xs font-semibold text-white bg-[#087451] hover:bg-[#065d40] rounded-lg flex items-center gap-1.5"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Tambah Akun Admin / Anggota
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -1116,8 +1177,79 @@ export function UsersAndAcademicAdmin({
           </div>
         )}
 
-        {/* ALL USER ACCOUNTS (ADMIN & ANGGOTA ID/PASSWORD MANAGEMENT) */}
-        {userSubTab === 'admins' && (
+        {/* ALL USER ACCOUNTS (ADMIN & ANGGOTA ID/PASSWORD MANAGEMENT — PROTECTED BY OWNER SECURITY GATE 2026) */}
+        {userSubTab === 'admins' && !isOwnerAccountUnlocked && (
+          <div className="max-w-md mx-auto my-8">
+            <div className="bg-white rounded-2xl border border-[#C5A45B]/55 shadow-xl overflow-hidden islamic-pattern-subtle">
+              <div className="bg-[#14283F] text-white px-6 py-5 border-b border-[#C5A45B]/35 flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[#C5A45B]/20 border border-[#C5A45B]/50 flex items-center justify-center shrink-0">
+                  <Lock className="w-5 h-5 text-[#C5A45B]" />
+                </div>
+                <div>
+                  <div className="text-[11px] font-semibold text-[#C5A45B] tracking-wide">
+                    Otorisasi Khusus Pemilik (Owner Security Gate)
+                  </div>
+                  <h3 className="text-base font-display font-bold text-white">
+                    Manajemen Akun &amp; Password Terkunci
+                  </h3>
+                </div>
+              </div>
+
+              <form
+                onSubmit={handleUnlockAccountManagement}
+                className="p-6 bg-white/95 space-y-4 text-xs"
+              >
+                <p className="text-[#14283F]/80 leading-relaxed">
+                  Halaman <strong>Manajemen Akun, ID Login &amp; Password Seluruh Pengguna</strong> dilindungi dengan kode rahasia pemilik. Silakan masukkan kode password pemilik untuk melanjutkan.
+                </p>
+
+                {ownerPasscodeError && (
+                  <div
+                    role="alert"
+                    className="p-3 rounded-lg bg-red-500/15 border border-red-500/40 text-red-600 font-semibold"
+                  >
+                    {ownerPasscodeError}
+                  </div>
+                )}
+
+                <div>
+                  <label
+                    htmlFor="owner-account-passcode"
+                    className="block font-semibold text-[#14283F] mb-1.5"
+                  >
+                    Kode Password Pemilik *
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="owner-account-passcode"
+                      type="password"
+                      inputMode="numeric"
+                      autoFocus
+                      required
+                      value={ownerPasscodeInput}
+                      onChange={(e) => {
+                        setOwnerPasscodeInput(e.target.value);
+                        if (ownerPasscodeError) setOwnerPasscodeError('');
+                      }}
+                      placeholder="Masukkan kode password pemilik..."
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#14283F]/25 text-sm font-mono-num tracking-widest focus:outline-none focus:border-[#087451]"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full px-5 py-2.5 rounded-lg bg-[#087451] hover:bg-[#065d40] text-white font-semibold flex items-center justify-center gap-2 transition-colors"
+                >
+                  <KeyRound className="w-4 h-4" />
+                  Buka Manajemen Akun &amp; Password
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {userSubTab === 'admins' && isOwnerAccountUnlocked && (
           <div className="bg-white rounded-xl p-6 border border-[#14283F]/10 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
