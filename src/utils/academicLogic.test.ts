@@ -4,11 +4,16 @@ import {
   calculateStudentProgress,
   canAccessBookFile,
   canAccessZoomLink,
+  DEFAULT_APPS_SCRIPT_WEB_APP_URL,
   generateGoogleAppsScriptCode,
+  generateGoogleAppsScriptSetupCode,
   gradeExamAttempt,
   hasPermission,
   normalizeSearchText,
+  resolveAppsScriptWebAppUrl,
   searchAndFilterBooks,
+  VERCEL_ENV_APPS_SCRIPT_KEY,
+  verifyOwnerSettingsPasscode,
 } from './academicLogic';
 import {
   AcademicClass,
@@ -329,9 +334,44 @@ test('gradeExamAttempt scores objective questions and detects essay questions', 
   assert.equal(result.gradingStatus, 'Pending Essay Review');
 });
 
-test('generateGoogleAppsScriptCode outputs valid doGet and doPost handlers', () => {
-  const script = generateGoogleAppsScriptCode('Islamic Academy Portal');
-  assert.equal(script.includes('function doGet(e)'), true);
-  assert.equal(script.includes('function doPost(e)'), true);
-  assert.equal(script.includes('SpreadsheetApp.getActiveSpreadsheet()'), true);
+test('generateGoogleAppsScriptCode and generateGoogleAppsScriptSetupCode output separate Code.gs and Setup.gs files', () => {
+  const codeGs = generateGoogleAppsScriptCode('Islamic Academy Portal');
+  assert.equal(codeGs.includes('FILE 1: Code.gs'), true);
+  assert.equal(codeGs.includes('function doGet(e)'), true);
+  assert.equal(codeGs.includes('function doPost(e)'), true);
+
+  const setupGs = generateGoogleAppsScriptSetupCode('Islamic Academy Portal');
+  assert.equal(setupGs.includes('FILE 2: Setup.gs'), true);
+  assert.equal(setupGs.includes('function setupIslamicAcademyDatabase()'), true);
+  assert.equal(setupGs.includes('const SHEET_SCHEMA ='), true);
 });
+
+test('verifyOwnerSettingsPasscode strictly validates owner code 2026', () => {
+  assert.equal(verifyOwnerSettingsPasscode('2026'), true);
+  assert.equal(verifyOwnerSettingsPasscode(' 2026 '), true);
+  assert.equal(verifyOwnerSettingsPasscode('2025'), false);
+  assert.equal(verifyOwnerSettingsPasscode(''), false);
+});
+
+test('resolveAppsScriptWebAppUrl resolves single Vercel environment variable VITE_APPS_SCRIPT_URL and default URL', () => {
+  assert.equal(VERCEL_ENV_APPS_SCRIPT_KEY, 'VITE_APPS_SCRIPT_URL');
+  assert.equal(
+    resolveAppsScriptWebAppUrl('', ''),
+    DEFAULT_APPS_SCRIPT_WEB_APP_URL
+  );
+  assert.equal(
+    resolveAppsScriptWebAppUrl(
+      '',
+      'https://script.google.com/macros/s/ENV_TEST/exec'
+    ),
+    'https://script.google.com/macros/s/ENV_TEST/exec'
+  );
+  assert.equal(
+    resolveAppsScriptWebAppUrl(
+      'https://script.google.com/macros/s/CUSTOM_URL/exec',
+      'https://script.google.com/macros/s/ENV_TEST/exec'
+    ),
+    'https://script.google.com/macros/s/CUSTOM_URL/exec'
+  );
+});
+

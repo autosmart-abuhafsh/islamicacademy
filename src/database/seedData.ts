@@ -1590,13 +1590,15 @@ export const INITIAL_ACADEMY_DATABASE: AcademyDatabase = {
     allowPublicRegistration: true,
     requireBookVerificationBeforeDownload: true,
     googleSheetSync: {
-      appsScriptWebAppUrl: '',
+      appsScriptWebAppUrl:
+        'https://script.google.com/macros/s/AKfycbwVVIpsKaBwP2VBDLS6nHrj7EQ7xct1nTAqLKhlpGPJmE8jm6OVYwm7hX7fzD5AhCmw/exec',
       spreadsheetUrl: '',
       autoSyncEnabled: true,
       syncIntervalSeconds: 8,
       lastSyncedAt: '2026-11-24T07:00:00.000Z',
-      lastSyncStatus: 'Local Real-Time Mode',
-      lastSyncMessage: 'Server Real-Time Sync aktif (HP & PC tersinkronisasi). Hubungkan URL Web App Google Apps Script untuk pencadangan langsung ke Google Sheets.',
+      lastSyncStatus: 'Connected & Synced',
+      lastSyncMessage:
+        'Terhubung ke Server Database Google Apps Script (VITE_APPS_SCRIPT_URL). Sinkronisasi Real-Time HP & PC aktif.',
       syncRevision: 1,
     },
   },

@@ -4,12 +4,15 @@ import {
   Database,
   Download,
   FileSpreadsheet,
+  KeyRound,
+  Lock,
   MessageSquare,
   Plus,
   Printer,
   Scale,
   Send,
   Settings,
+  Unlock,
   X,
 } from 'lucide-react';
 import {
@@ -21,7 +24,10 @@ import {
   QuestionModerationStatus,
   UserAccount,
 } from '../types/database';
-import { hasPermission } from '../utils/academicLogic';
+import {
+  hasPermission,
+  verifyOwnerSettingsPasscode,
+} from '../utils/academicLogic';
 
 interface KnowledgeReportsAndSettingsProps {
   db: AcademyDatabase;
@@ -75,7 +81,11 @@ export function KnowledgeReportsAndSettings({
   const [answerDrafts, setAnswerDrafts] = useState<Record<string, string>>({});
   const [rejectDrafts, setRejectDrafts] = useState<Record<string, string>>({});
 
-  // Settings Form
+  // Settings Form & Owner Passcode Gate (Code: 2026)
+  const [isOwnerUnlocked, setIsOwnerUnlocked] = useState(false);
+  const [ownerPasscodeInput, setOwnerPasscodeInput] = useState('');
+  const [ownerPasscodeError, setOwnerPasscodeError] = useState('');
+
   const [settingsForm, setSettingsForm] = useState({
     academyName: db.settings.academyName,
     academyArabicName: db.settings.academyArabicName,
@@ -89,6 +99,9 @@ export function KnowledgeReportsAndSettings({
     requireBookVerificationBeforeDownload:
       db.settings.requireBookVerificationBeforeDownload,
   });
+  const [inlineAppsScriptUrl, setInlineAppsScriptUrl] = useState(
+    db.settings.googleSheetSync.appsScriptWebAppUrl || ''
+  );
 
   const canPublishFatwa =
     currentUser.role === 'super_admin' || currentUser.role === 'admin_konten';
@@ -847,7 +860,7 @@ export function KnowledgeReportsAndSettings({
     );
   }
 
-  // MODE 3: SYSTEM SETTINGS, GOOGLE SHEET APPS SCRIPT & VERCEL CONFIGURATION (SUPER ADMIN EXCLUSIVE)
+  // MODE 3: SYSTEM SETTINGS, GOOGLE SHEET APPS SCRIPT & VERCEL CONFIGURATION (SUPER ADMIN + OWNER PASSCODE 2026)
   if (currentUser.role !== 'super_admin') {
     return (
       <div className="bg-white rounded-xl p-8 border border-[#14283F]/10 text-center space-y-2">
@@ -857,6 +870,97 @@ export function KnowledgeReportsAndSettings({
         <p className="text-xs text-[#14283F]/75">
           Halaman pengaturan database sinkronisasi dan konfigurasi sistem hanya dapat diakses oleh Super Admin.
         </p>
+      </div>
+    );
+  }
+
+  const handleUnlockSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (verifyOwnerSettingsPasscode(ownerPasscodeInput)) {
+      setIsOwnerUnlocked(true);
+      setOwnerPasscodeError('');
+      setOwnerPasscodeInput('');
+      onNotify(
+        'Verifikasi kode pemilik berhasil! Pengaturan Sistem telah dibuka.',
+        'success'
+      );
+    } else {
+      setOwnerPasscodeError(
+        'Kode password pemilik tidak sesuai. Hanya pemilik otoritas yang dapat membuka Pengaturan Sistem.'
+      );
+      onNotify('Kode password pemilik salah.', 'error');
+    }
+  };
+
+  if (!isOwnerUnlocked) {
+    return (
+      <div className="max-w-md mx-auto my-8">
+        <div className="bg-white rounded-2xl border border-[#C5A45B]/55 shadow-xl overflow-hidden islamic-pattern-subtle">
+          <div className="bg-[#14283F] text-white px-6 py-5 border-b border-[#C5A45B]/35 flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-[#C5A45B]/20 border border-[#C5A45B]/50 flex items-center justify-center shrink-0">
+              <Lock className="w-5 h-5 text-[#C5A45B]" />
+            </div>
+            <div>
+              <div className="text-[11px] font-semibold text-[#C5A45B] tracking-wide">
+                Otorisasi Khusus Pemilik (Owner Security Gate)
+              </div>
+              <h3 className="text-base font-display font-bold text-white">
+                Pengaturan Sistem Terkunci
+              </h3>
+            </div>
+          </div>
+
+          <form
+            onSubmit={handleUnlockSettings}
+            className="p-6 bg-white/95 space-y-4 text-xs"
+          >
+            <p className="text-[#14283F]/80 leading-relaxed">
+              Halaman <strong>Pengaturan Sistem &amp; Integrasi Database (Code.gs &amp; Setup.gs)</strong> dilindungi dengan kode rahasia pemilik. Silakan masukkan kode password pemilik untuk melanjutkan.
+            </p>
+
+            {ownerPasscodeError && (
+              <div
+                role="alert"
+                className="p-3 rounded-lg bg-red-500/15 border border-red-500/40 text-red-600 font-semibold"
+              >
+                {ownerPasscodeError}
+              </div>
+            )}
+
+            <div>
+              <label
+                htmlFor="owner-settings-passcode"
+                className="block font-semibold text-[#14283F] mb-1.5"
+              >
+                Kode Password Pemilik *
+              </label>
+              <div className="relative">
+                <input
+                  id="owner-settings-passcode"
+                  type="password"
+                  inputMode="numeric"
+                  autoFocus
+                  required
+                  value={ownerPasscodeInput}
+                  onChange={(e) => {
+                    setOwnerPasscodeInput(e.target.value);
+                    if (ownerPasscodeError) setOwnerPasscodeError('');
+                  }}
+                  placeholder="Masukkan kode password pemilik..."
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-[#14283F]/25 text-sm font-mono-num tracking-widest focus:outline-none focus:border-[#087451]"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full px-5 py-2.5 rounded-lg bg-[#087451] hover:bg-[#065d40] text-white font-semibold flex items-center justify-center gap-2 transition-colors"
+            >
+              <KeyRound className="w-4 h-4" />
+              Buka Pengaturan Sistem
+            </button>
+          </form>
+        </div>
       </div>
     );
   }
@@ -881,6 +985,26 @@ export function KnowledgeReportsAndSettings({
 
   return (
     <div className="space-y-6">
+      {/* Status Bar Otorisasi Pemilik */}
+      <div className="bg-white rounded-xl px-5 py-3.5 border border-[#087451]/35 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 text-[#087451] font-semibold">
+          <Unlock className="w-4 h-4 shrink-0" />
+          <span>Akses Pemilik Terverifikasi — Pengaturan Sistem &amp; Database Aktif</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setIsOwnerUnlocked(false);
+            setOwnerPasscodeInput('');
+            onNotify('Pengaturan Sistem telah dikunci kembali.', 'success');
+          }}
+          className="px-3 py-1.5 rounded-lg bg-[#F5F0E4] hover:bg-[#C5A45B]/25 text-[#14283F] border border-[#14283F]/15 font-semibold flex items-center gap-1.5"
+        >
+          <Lock className="w-3.5 h-3.5 text-[#C5A45B]" />
+          Kunci Kembali Pengaturan
+        </button>
+      </div>
+
       {/* A. Banner Integrasi Apps Script - Google Sheet (Exclusively in Super Admin Settings) */}
       <div className="bg-[#14283F] text-white rounded-xl p-6 border border-[#C5A45B]/45 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
         <div className="space-y-2 max-w-2xl">
@@ -889,13 +1013,13 @@ export function KnowledgeReportsAndSettings({
             <span aria-hidden="true">·</span>
             <span className="font-mono-num">Revisi Database #{db.revision}</span>
             <span aria-hidden="true">·</span>
-            <span>Real-Time Sync HP & PC</span>
+            <span>Real-Time Sync HP &amp; PC</span>
           </div>
           <h3 className="text-lg font-bold">
-            A. Integrasi Database Google Apps Script — Google Sheet
+            A. Integrasi Database Google Apps Script — Google Sheet (Code.gs &amp; Setup.gs)
           </h3>
           <p className="text-xs text-[#F5F0E4]/85 leading-relaxed">
-            Status Koneksi: <strong>{db.settings.googleSheetSync.lastSyncStatus}</strong> ({db.settings.googleSheetSync.lastSyncMessage}). Seluruh pengaturan sinkronisasi database 21 tab Google Sheets dan generator <code>Code.gs</code> ditempatkan secara eksklusif di halaman Super Admin ini dan tidak ditampilkan kepada publik.
+            Status Koneksi: <strong>{db.settings.googleSheetSync.lastSyncStatus}</strong> ({db.settings.googleSheetSync.lastSyncMessage}). Kode Google Apps Script telah dipisahkan menjadi 2 file terstruktur: <code>Code.gs</code> (API Sync Real-Time) dan <code>Setup.gs</code> (Inisialisasi 21 Tab Database).
           </p>
         </div>
         <button
@@ -904,45 +1028,114 @@ export function KnowledgeReportsAndSettings({
           className="px-4 py-2.5 text-xs font-semibold text-white bg-[#087451] hover:bg-[#065d40] rounded-lg flex items-center gap-2 shrink-0"
         >
           <FileSpreadsheet className="w-4 h-4" />
-          Konfigurasi Apps Script & Google Sheet
+          Konfigurasi Apps Script &amp; Google Sheet
         </button>
       </div>
 
       {/* B. Integrasi & Kesiapan Deployment Vercel.app */}
-      <div className="bg-white rounded-xl p-6 border border-[#14283F]/10 space-y-3 text-xs">
+      <div className="bg-white rounded-xl p-6 border border-[#14283F]/10 space-y-4 text-xs">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className="text-xs font-semibold text-[#087451]">
-              Cloud Deployment & Serverless Architecture
+              Cloud Deployment &amp; Serverless Architecture
             </div>
             <h3 className="text-base font-bold text-[#14283F]">
-              B. Integrasi Deployment Vercel.app (*.vercel.app)
+              B. Integrasi Environment &amp; Deployment Vercel.app (*.vercel.app)
             </h3>
           </div>
           <span className="px-3 py-1 rounded-md bg-[#087451]/15 text-[#087451] font-semibold">
-            Vercel Serverless & SPA Ready
+            Vercel Build &amp; 1-Env-Var Ready
           </span>
         </div>
         <p className="text-[#14283F]/80 leading-relaxed">
-          Aplikasi ini telah dilengkapi konfigurasi resmi <code>vercel.json</code> dan Serverless API Adapter <code>/api/index.ts</code> sehingga siap di-deploy langsung ke <strong>Vercel (vercel.app)</strong>. Ketika di-deploy ke Vercel dan dihubungkan dengan URL Web App Google Apps Script di atas, seluruh transaksi dari HP maupun PC tetap tersimpan secara permanen ke Google Sheets Anda.
+          Anda dapat memasang link database Google Apps Script langsung pada kolom Environment di bawah ini sebelum deploy, maupun pada kolom <strong>Environment Variables</strong> di Vercel dengan cukup <strong>1 Environment Variable</strong> saja (Key: <code>VITE_APPS_SCRIPT_URL</code>). Konflik peer dependency <code>esbuild</code> pada Vercel juga telah diperbaiki melalui <code>package.json</code> (<code>esbuild@^0.28.0</code>), <code>.npmrc</code>, dan <code>vercel.json</code>.
         </p>
+
+        {/* Inline Environment Variable Input right here in Settings */}
+        <div className="p-4 rounded-xl bg-[#F5F0E4]/65 border border-[#C5A45B]/40 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="font-bold text-[#14283F]">
+              Pasang Environment Variable Database Disini (Sebelum / Saat Deploy Vercel)
+            </span>
+            <code className="px-2 py-0.5 rounded bg-[#14283F] text-[#F5F0E4] font-mono-num text-[11px]">
+              Key: VITE_APPS_SCRIPT_URL
+            </code>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
+            <div className="sm:col-span-9">
+              <label
+                htmlFor="inline-vite-apps-script-url"
+                className="block font-semibold text-[#14283F] mb-1"
+              >
+                Value (Link Web App Google Apps Script Anda)
+              </label>
+              <input
+                id="inline-vite-apps-script-url"
+                type="url"
+                value={inlineAppsScriptUrl}
+                onChange={(e) => setInlineAppsScriptUrl(e.target.value)}
+                placeholder="https://script.google.com/macros/s/.../exec"
+                className="w-full px-3.5 py-2.5 rounded-lg border border-[#14283F]/20 bg-white font-mono-num text-xs focus:outline-none focus:border-[#087451]"
+              />
+            </div>
+            <div className="sm:col-span-3">
+              <button
+                type="button"
+                onClick={async () => {
+                  const nextUrl = inlineAppsScriptUrl.trim();
+                  await onMutate({
+                    moduleKey: 'settings',
+                    action: 'edit',
+                    actionLabel: 'PASANG_ENV_APPS_SCRIPT',
+                    targetDescription:
+                      'Memasang link VITE_APPS_SCRIPT_URL untuk sinkronisasi Vercel & Google Sheet',
+                    updater: (prev) => ({
+                      ...prev,
+                      settings: {
+                        ...prev.settings,
+                        googleSheetSync: {
+                          ...prev.settings.googleSheetSync,
+                          appsScriptWebAppUrl: nextUrl,
+                          lastSyncStatus: nextUrl
+                            ? 'Connected & Synced'
+                            : 'Local Real-Time Mode',
+                          lastSyncMessage: nextUrl
+                            ? 'Terhubung ke VITE_APPS_SCRIPT_URL & siap sinkronisasi real-time di Vercel.'
+                            : prev.settings.googleSheetSync.lastSyncMessage,
+                        },
+                      },
+                    }),
+                  });
+                  onNotify(
+                    'Environment VITE_APPS_SCRIPT_URL berhasil dipasang & disinkronkan!',
+                    'success'
+                  );
+                }}
+                className="w-full px-4 py-2.5 rounded-lg bg-[#087451] hover:bg-[#065d40] text-white font-semibold transition-colors"
+              >
+                Pasang &amp; Simpan Environment
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
           <div className="p-3.5 rounded-lg bg-[#F5F0E4]/55 border border-[#14283F]/10">
-            <div className="font-bold text-[#14283F]">1. Konfigurasi Build</div>
+            <div className="font-bold text-[#14283F]">1. Build &amp; Peer Deps Fixed</div>
             <div className="text-[#14283F]/75 mt-1 font-mono-num">
-              Framework: Vite · Output: dist · Entry: vercel.json
+              esbuild@^0.28.0 · .npmrc · legacy-peer-deps
             </div>
           </div>
           <div className="p-3.5 rounded-lg bg-[#F5F0E4]/55 border border-[#14283F]/10">
-            <div className="font-bold text-[#14283F]">2. Serverless API</div>
+            <div className="font-bold text-[#14283F]">2. 1 Environment Variable</div>
             <div className="text-[#14283F]/75 mt-1 font-mono-num">
-              /api/* &rarr; /api/index.ts (Express Serverless + /tmp Cache)
+              Key: VITE_APPS_SCRIPT_URL
             </div>
           </div>
           <div className="p-3.5 rounded-lg bg-[#F5F0E4]/55 border border-[#14283F]/10">
-            <div className="font-bold text-[#14283F]">3. Persistent Cloud DB</div>
+            <div className="font-bold text-[#14283F]">3. Auto-Sync HP &amp; PC</div>
             <div className="text-[#14283F]/75 mt-1">
-              Otomatis sinkron ke Google Sheet melalui Web App URL Apps Script
+              Otomatis Push &amp; Pull ke Google Sheet melalui Apps Script
             </div>
           </div>
         </div>

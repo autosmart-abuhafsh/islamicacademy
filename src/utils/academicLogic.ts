@@ -362,68 +362,50 @@ export function gradeExamAttempt(
 }
 
 /**
- * Generates a ready-to-deploy Google Apps Script (Code.gs) for real-time Google Sheets database storage and bidirectional sync across mobile (HP) and desktop (PC).
+ * Verifies the Owner Passcode required to unlock the System Settings & Database Sync menu.
+ */
+export const OWNER_SETTINGS_PASSCODE = '2026';
+
+export function verifyOwnerSettingsPasscode(inputCode: string): boolean {
+  return inputCode.trim() === OWNER_SETTINGS_PASSCODE;
+}
+
+/**
+ * FILE 1: Code.gs
+ * Generates the Web App API Engine (doGet, doPost, and real-time table synchronization) for Google Apps Script.
  */
 export function generateGoogleAppsScriptCode(academyName: string): string {
   return `/**
  * ============================================================================
- * GOOGLE APPS SCRIPT - REAL-TIME DATABASE ENGINE FOR ${academyName.toUpperCase()}
+ * FILE 1: Code.gs — WEB APP API & REAL-TIME SYNC ENGINE
+ * ${academyName.toUpperCase()}
  * ============================================================================
- * Cara Penggunaan:
- * 1. Buka Google Sheets baru di https://sheets.new
- * 2. Klik menu Extensions (Ekstensi) -> Apps Script
- * 3. Hapus kode lama, tempelkan (Paste) seluruh kode ini ke dalam Code.gs
- * 4. Klik tombol "Deploy" -> "New deployment" (Deployment baru)
- * 5. Pilih jenis: "Web app"
+ * Panduan Pemasangan (2 File Terpisah: Code.gs & Setup.gs):
+ * 1. Buka Google Sheets Anda -> Klik Extensions (Ekstensi) -> Apps Script.
+ * 2. Pada file "Code.gs", hapus kode lama lalu tempelkan (Paste) kode ini.
+ * 3. Buat file script kedua bernama "Setup.gs" (klik ikon + -> Script),
+ *    lalu tempelkan kode dari tab "3. File Kedua: Setup.gs".
+ * 4. Jalankan fungsi "setupIslamicAcademyDatabase()" pada Setup.gs satu kali
+ *    untuk membuat 21 tab sheet beserta format header-nya.
+ * 5. Klik "Deploy" -> "New deployment" -> Jenis: "Web app"
  *    - Execute as: "Me" (Saya)
- *    - Who has access: "Anyone" (Siapa saja) -> agar HP & PC dapat sinkronisasi otomatis
- * 6. Salin "Web App URL" (https://script.google.com/macros/s/.../exec)
- * 7. Tempelkan URL tersebut pada menu "Pengaturan Sistem -> Integrasi Google Sheet" di aplikasi.
+ *    - Who has access: "Anyone" (Siapa saja)
+ * 6. Salin "Web App URL" dan tempelkan ke menu Pengaturan Sistem di aplikasi.
  */
-
-const SHEET_TABS = [
-  'Meta_State',
-  'Users',
-  'Students',
-  'Teachers',
-  'Programs',
-  'Classes',
-  'Schedules',
-  'Admissions',
-  'Announcements',
-  'Materials',
-  'Attendance',
-  'Assignments',
-  'Submissions',
-  'Examinations',
-  'Grades',
-  'Library_Categories',
-  'Library_Subcategories',
-  'Books',
-  'Fatwas',
-  'Questions',
-  'Activity_Logs'
-];
-
-function ensureSheetsExist(ss) {
-  SHEET_TABS.forEach(function(tabName) {
-    if (!ss.getSheetByName(tabName)) {
-      ss.insertSheet(tabName);
-    }
-  });
-}
 
 function doGet(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  ensureSheetsExist(ss);
-  var metaSheet = ss.getSheetByName('Meta_State');
+  if (typeof ensureSheetsExist === 'function') {
+    ensureSheetsExist(ss);
+  }
+  var metaSheet = ss.getSheetByName('Meta_State') || ss.insertSheet('Meta_State');
   var rawJson = metaSheet.getRange('A2').getValue();
   var updatedAt = metaSheet.getRange('B2').getValue();
 
   if (!rawJson) {
     return ContentService.createTextOutput(JSON.stringify({
       status: 'empty',
-      message: 'Spreadsheet siap digunakan. Silakan klik Push / Sinkronisasi dari aplikasi.'
+      message: 'Spreadsheet siap digunakan. Silakan klik Push Data ke Google Sheet dari aplikasi.'
     })).setMimeType(ContentService.MimeType.JSON);
   }
 
@@ -439,18 +421,20 @@ function doPost(e) {
   lock.tryLock(10000);
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    ensureSheetsExist(ss);
+    if (typeof ensureSheetsExist === 'function') {
+      ensureSheetsExist(ss);
+    }
     var payload = JSON.parse(e.postData.contents);
     var db = payload.database;
     var now = new Date().toISOString();
 
     // 1. Simpan snapshot JSON utuh pada Meta_State untuk sinkronisasi instan HP <-> PC
-    var metaSheet = ss.getSheetByName('Meta_State');
-    metaSheet.clear();
+    var metaSheet = ss.getSheetByName('Meta_State') || ss.insertSheet('Meta_State');
+    metaSheet.clearContents();
     metaSheet.getRange('A1:C1').setValues([['Database_JSON', 'Updated_At', 'Revision']]);
     metaSheet.getRange('A2:C2').setValues([[JSON.stringify(db), now, db.revision || 1]]);
 
-    // 2. Ekspor tabel terstruktur ke masing-masing Tab Sheet agar mudah dibaca & diedit di Google Sheets
+    // 2. Ekspor tabel terstruktur ke masing-masing 20 Tab Sheet operasional
     writeCollectionToSheet(ss, 'Users', db.users || []);
     writeCollectionToSheet(ss, 'Students', db.students || []);
     writeCollectionToSheet(ss, 'Teachers', db.teachers || []);
@@ -460,6 +444,7 @@ function doPost(e) {
     writeCollectionToSheet(ss, 'Admissions', db.admissions || []);
     writeCollectionToSheet(ss, 'Announcements', db.announcements || []);
     writeCollectionToSheet(ss, 'Materials', db.materials || []);
+    writeCollectionToSheet(ss, 'Attendance', db.attendanceSessions || []);
     writeCollectionToSheet(ss, 'Assignments', db.assignments || []);
     writeCollectionToSheet(ss, 'Submissions', db.submissions || []);
     writeCollectionToSheet(ss, 'Examinations', db.examinations || []);
@@ -487,11 +472,13 @@ function doPost(e) {
 }
 
 function writeCollectionToSheet(ss, sheetName, rows) {
-  var sheet = ss.getSheetByName(sheetName);
-  if (!sheet) return;
-  sheet.clear();
+  var sheet = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
+  sheet.clearContents();
   if (!rows || rows.length === 0) {
-    sheet.getRange(1, 1).setValue('No Data');
+    var defaultHeaders = (typeof SHEET_SCHEMA !== 'undefined' && SHEET_SCHEMA[sheetName])
+      ? SHEET_SCHEMA[sheetName]
+      : ['id', 'status', 'updatedAt'];
+    sheet.getRange(1, 1, 1, defaultHeaders.length).setValues([defaultHeaders]);
     return;
   }
   var headers = Object.keys(rows[0]);
@@ -506,6 +493,146 @@ function writeCollectionToSheet(ss, sheetName, rows) {
     values.push(row);
   });
   sheet.getRange(1, 1, values.length, headers.length).setValues(values);
+  if (typeof formatSheetHeader === 'function') {
+    formatSheetHeader(sheet, headers.length);
+  }
 }
 `;
 }
+
+/**
+ * FILE 2: Setup.gs
+ * Generates the Database Schema Initializer, 21-Tab Creator, Header Styling, and Custom Menu for Google Sheets.
+ */
+export function generateGoogleAppsScriptSetupCode(academyName: string): string {
+  return `/**
+ * ============================================================================
+ * FILE 2: Setup.gs — INISIALISASI 21 TAB DATABASE & SKEMA HEADER GOOGLE SHEET
+ * ${academyName.toUpperCase()}
+ * ============================================================================
+ * Cara Penggunaan Setup.gs:
+ * 1. Di editor Google Apps Script, klik tanda "+" (Add a file) -> pilih "Script".
+ * 2. Beri nama file: Setup (sehingga menjadi Setup.gs).
+ * 3. Tempelkan (Paste) seluruh kode ini ke dalam Setup.gs lalu tekan Ctrl+S (Simpan).
+ * 4. Pilih fungsi "setupIslamicAcademyDatabase" pada dropdown toolbar atas,
+ *    lalu klik tombol "Run" (Jalankan) untuk membuat dan memformat 21 tab sekaligus!
+ */
+
+const SHEET_SCHEMA = {
+  Meta_State: ['Database_JSON', 'Updated_At', 'Revision'],
+  Users: ['id', 'username', 'email', 'passwordHash', 'fullName', 'role', 'whatsapp', 'gender', 'city', 'status', 'joinedAt', 'createdAt', 'updatedAt'],
+  Students: ['id', 'userId', 'nis', 'fullName', 'email', 'whatsapp', 'gender', 'city', 'joinedAt', 'programIds', 'classIds', 'accountStatus', 'membershipStatus', 'notes'],
+  Teachers: ['id', 'userId', 'nip', 'fullName', 'arabicName', 'specialization', 'biography', 'email', 'whatsapp', 'gender', 'city', 'classIds', 'accountStatus'],
+  Programs: ['id', 'code', 'title', 'arabicTitle', 'level', 'duration', 'description', 'fee', 'quota', 'status', 'curriculumTopics'],
+  Classes: ['id', 'code', 'name', 'programId', 'teacherId', 'studentIds', 'quota', 'scheduleSummary', 'startDate', 'endDate', 'status', 'zoomLink', 'zoomMeetingId', 'zoomPasscode', 'zoomNotes'],
+  Schedules: ['id', 'classId', 'programId', 'teacherId', 'dayOfWeek', 'date', 'startTime', 'endTime', 'timezone', 'topic', 'roomOrChannel', 'sessionStatus'],
+  Admissions: ['id', 'registrationNumber', 'fullName', 'email', 'whatsapp', 'gender', 'city', 'programId', 'backgroundNotes', 'status', 'submittedAt', 'assignedClassId', 'reviewedBy'],
+  Announcements: ['id', 'title', 'category', 'content', 'targetAudience', 'status', 'publishedAt', 'authorName'],
+  Materials: ['id', 'classId', 'orderIndex', 'title', 'description', 'type', 'fileUrl', 'fileName', 'fileSizeKb', 'accessScope', 'distributionRight', 'uploadedBy', 'uploadedAt', 'completedByStudentIds'],
+  Attendance: ['id', 'classId', 'date', 'topic', 'createdBy', 'records'],
+  Assignments: ['id', 'classId', 'title', 'instructions', 'dueDate', 'maxScore', 'attachmentUrl', 'createdBy', 'createdAt'],
+  Submissions: ['id', 'assignmentId', 'studentId', 'answerText', 'fileUrl', 'fileName', 'submittedAt', 'status', 'score', 'feedback'],
+  Examinations: ['id', 'classId', 'title', 'description', 'durationMinutes', 'passingScore', 'status', 'questions', 'attempts'],
+  Grades: ['id', 'studentId', 'classId', 'componentType', 'referenceId', 'title', 'score', 'maxScore', 'feedback', 'gradedAt', 'gradedBy'],
+  Library_Categories: ['id', 'orderNumber', 'slug', 'name', 'arabicName', 'description', 'corecompetency'],
+  Library_Subcategories: ['id', 'categoryId', 'name', 'arabicName', 'description', 'recommendedOrder'],
+  Books: ['id', 'code', 'arabicTitle', 'transliterationTitle', 'translatedTitle', 'description', 'coverAccent', 'authorName', 'authorDeathYearHijri', 'categoryId', 'subcategoryId', 'difficultyLevel', 'verificationStatus', 'distributionRight', 'isPublished', 'accessCount'],
+  Fatwas: ['id', 'code', 'title', 'category', 'questionContext', 'answerContent', 'muftiName', 'sourceReference', 'kitabReferences', 'publishedDate', 'verificationStatus'],
+  Questions: ['id', 'studentId', 'studentName', 'category', 'title', 'questionText', 'createdAt', 'status', 'answeredBy', 'answerText', 'answeredAt'],
+  Activity_Logs: ['id', 'actorId', 'actorName', 'actorRole', 'action', 'module', 'targetDescription', 'timestamp']
+};
+
+const SHEET_TABS = Object.keys(SHEET_SCHEMA);
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Islamic Academy DB')
+    .addItem('1. Inisialisasi & Format 21 Tab Database', 'setupIslamicAcademyDatabase')
+    .addItem('2. Bersihkan Cache Snapshot Meta_State', 'resetMetaStateSnapshot')
+    .addToUi();
+}
+
+function ensureSheetsExist(ss) {
+  var targetSs = ss || SpreadsheetApp.getActiveSpreadsheet();
+  SHEET_TABS.forEach(function(tabName) {
+    if (!targetSs.getSheetByName(tabName)) {
+      var newSheet = targetSs.insertSheet(tabName);
+      var headers = SHEET_SCHEMA[tabName];
+      newSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      formatSheetHeader(newSheet, headers.length);
+    }
+  });
+}
+
+function formatSheetHeader(sheet, colCount) {
+  var headerRange = sheet.getRange(1, 1, 1, colCount);
+  headerRange
+    .setBackground('#087451')
+    .setFontColor('#FFFFFF')
+    .setFontWeight('bold')
+    .setHorizontalAlignment('left');
+  sheet.setFrozenRows(1);
+}
+
+function setupIslamicAcademyDatabase() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  SHEET_TABS.forEach(function(tabName) {
+    var sheet = ss.getSheetByName(tabName);
+    if (!sheet) {
+      sheet = ss.insertSheet(tabName);
+    }
+    var headers = SHEET_SCHEMA[tabName];
+    if (sheet.getLastRow() === 0) {
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    }
+    formatSheetHeader(sheet, headers.length);
+  });
+  return 'Inisialisasi 21 Tab Database Islamic Academy Portal selesai!';
+}
+
+function resetMetaStateSnapshot() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var metaSheet = ss.getSheetByName('Meta_State');
+  if (metaSheet) {
+    metaSheet.clearContents();
+    var headers = SHEET_SCHEMA.Meta_State;
+    metaSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    formatSheetHeader(metaSheet, headers.length);
+  }
+}
+`;
+}
+
+export const VERCEL_ENV_APPS_SCRIPT_KEY = 'VITE_APPS_SCRIPT_URL';
+
+export const DEFAULT_APPS_SCRIPT_WEB_APP_URL =
+  'https://script.google.com/macros/s/AKfycbwVVIpsKaBwP2VBDLS6nHrj7EQ7xct1nTAqLKhlpGPJmE8jm6OVYwm7hX7fzD5AhCmw/exec';
+
+/**
+ * Resolves the active Google Apps Script Web App URL with priority:
+ * 1. Explicit URL saved in settings (if valid script.google.com URL)
+ * 2. Single Vercel Environment Variable (VITE_APPS_SCRIPT_URL)
+ * 3. Pre-configured default Apps Script Web App URL
+ */
+export function resolveAppsScriptWebAppUrl(
+  configuredUrl?: string,
+  envUrl?: string
+): string {
+  const cleanConfigured = (configuredUrl || '').trim();
+  const cleanEnv = (envUrl || '').trim();
+
+  if (
+    cleanConfigured.startsWith('https://script.google.com/') &&
+    cleanConfigured !== DEFAULT_APPS_SCRIPT_WEB_APP_URL
+  ) {
+    return cleanConfigured;
+  }
+  if (cleanEnv.startsWith('https://script.google.com/')) {
+    return cleanEnv;
+  }
+  if (cleanConfigured.startsWith('https://script.google.com/')) {
+    return cleanConfigured;
+  }
+  return DEFAULT_APPS_SCRIPT_WEB_APP_URL;
+}
+

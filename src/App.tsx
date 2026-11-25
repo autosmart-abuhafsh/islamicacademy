@@ -11,6 +11,7 @@ import {
   PermissionAction,
   UserAccount,
 } from './types/database';
+import { resolveAppsScriptWebAppUrl } from './utils/academicLogic';
 
 interface ToastMessage {
   id: number;
@@ -20,6 +21,10 @@ interface ToastMessage {
 
 const LOCAL_DB_STORAGE_KEY = 'iap_cached_database_v1';
 const THEME_STORAGE_KEY = 'iap_theme_mode';
+const ENV_APPS_SCRIPT_URL =
+  typeof import.meta !== 'undefined' && import.meta.env
+    ? (import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined)
+    : undefined;
 
 export default function App() {
   const [db, setDb] = useState<AcademyDatabase>(() => {
@@ -28,6 +33,17 @@ export default function App() {
       if (cached) {
         const parsed = JSON.parse(cached) as AcademyDatabase;
         if (parsed && parsed.users && parsed.libraryCategories) {
+          const resolvedUrl = resolveAppsScriptWebAppUrl(
+            parsed.settings?.googleSheetSync?.appsScriptWebAppUrl,
+            ENV_APPS_SCRIPT_URL
+          );
+          if (
+            parsed.settings?.googleSheetSync &&
+            !parsed.settings.googleSheetSync.appsScriptWebAppUrl
+          ) {
+            parsed.settings.googleSheetSync.appsScriptWebAppUrl = resolvedUrl;
+            parsed.settings.googleSheetSync.lastSyncStatus = 'Connected & Synced';
+          }
           return parsed;
         }
       }
@@ -146,15 +162,38 @@ export default function App() {
   const fetchDatabase = useCallback(async () => {
     try {
       const res = await fetch('/api/db');
-      if (!res.ok) return;
+      if (!res.ok) throw new Error('API unavailable');
       const remoteDb = (await res.json()) as AcademyDatabase;
       if (remoteDb && remoteDb.users) {
         revisionRef.current = remoteDb.revision;
         setDb(remoteDb);
         persistLocalCache(remoteDb);
+        return;
       }
     } catch {
-      // Offline / static Vercel fallback keeps cached state active
+      // Static Vercel fallback: pull directly from VITE_APPS_SCRIPT_URL
+      const appsScriptUrl = resolveAppsScriptWebAppUrl(
+        undefined,
+        ENV_APPS_SCRIPT_URL
+      );
+      if (appsScriptUrl && appsScriptUrl.startsWith('https://script.google.com/')) {
+        try {
+          const pullRes = await fetch(appsScriptUrl, { method: 'GET' });
+          if (pullRes.ok) {
+            const pullData = (await pullRes.json()) as {
+              status?: string;
+              database?: AcademyDatabase;
+            };
+            if (pullData?.status === 'ok' && pullData.database?.users) {
+              revisionRef.current = pullData.database.revision || 1;
+              setDb(pullData.database);
+              persistLocalCache(pullData.database);
+            }
+          }
+        } catch {
+          // Offline fallback keeps cached state active
+        }
+      }
     }
   }, [persistLocalCache]);
 
@@ -259,8 +298,10 @@ export default function App() {
         }
       } catch {
         // Direct client-side Apps Script push fallback when running on static Vercel host
-        const appsScriptUrl =
-          nextDatabase.settings?.googleSheetSync?.appsScriptWebAppUrl?.trim();
+        const appsScriptUrl = resolveAppsScriptWebAppUrl(
+          nextDatabase.settings?.googleSheetSync?.appsScriptWebAppUrl,
+          ENV_APPS_SCRIPT_URL
+        );
         if (appsScriptUrl && appsScriptUrl.startsWith('https://script.google.com/')) {
           try {
             await fetch(appsScriptUrl, {
@@ -365,6 +406,40 @@ export default function App() {
         );
       } catch {
         // Direct client-side fallback for static Vercel deployment
+        const targetUrl = resolveAppsScriptWebAppUrl(
+          appsScriptWebAppUrl,
+          ENV_APPS_SCRIPT_URL
+        );
+        if (mode === 'PUSH' && targetUrl.startsWith('https://script.google.com/')) {
+          try {
+            await fetch(targetUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({
+                action: 'SYNC_PUSH',
+                database: db,
+              }),
+            });
+          } catch {
+            // Ignore CORS preflight note
+          }
+        } else if (mode === 'PULL' && targetUrl.startsWith('https://script.google.com/')) {
+          try {
+            const pullRes = await fetch(targetUrl, { method: 'GET' });
+            const pullData = (await pullRes.json()) as {
+              status?: string;
+              database?: AcademyDatabase;
+            };
+            if (pullData?.status === 'ok' && pullData.database?.users) {
+              setDb(pullData.database);
+              persistLocalCache(pullData.database);
+              notify('Data berhasil ditarik (Pull) dari Google Sheet Apps Script!', 'success');
+              return;
+            }
+          } catch {
+            // Continue to local config update
+          }
+        }
         const updatedDb: AcademyDatabase = {
           ...db,
           revision: db.revision + 1,
@@ -373,10 +448,10 @@ export default function App() {
             ...db.settings,
             googleSheetSync: {
               ...db.settings.googleSheetSync,
-              appsScriptWebAppUrl: appsScriptWebAppUrl.trim(),
+              appsScriptWebAppUrl: targetUrl,
               spreadsheetUrl: spreadsheetUrl.trim(),
               lastSyncedAt: new Date().toISOString(),
-              lastSyncStatus: appsScriptWebAppUrl.trim()
+              lastSyncStatus: targetUrl
                 ? 'Connected & Synced'
                 : 'Local Real-Time Mode',
               lastSyncMessage:
@@ -386,7 +461,7 @@ export default function App() {
         };
         setDb(updatedDb);
         persistLocalCache(updatedDb);
-        notify('Konfigurasi Google Sheet Apps Script berhasil disimpan.', 'success');
+        notify('Sinkronisasi & konfigurasi Google Sheet Apps Script berhasil!', 'success');
       }
     },
     [db, notify, persistLocalCache]

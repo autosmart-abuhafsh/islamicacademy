@@ -6,13 +6,21 @@ import {
   Database,
   DownloadCloud,
   ExternalLink,
+  FileCode2,
   RefreshCw,
   Smartphone,
   Monitor,
+  Wrench,
   X,
 } from 'lucide-react';
 import { AcademyDatabase } from '../types/database';
-import { generateGoogleAppsScriptCode } from '../utils/academicLogic';
+import {
+  DEFAULT_APPS_SCRIPT_WEB_APP_URL,
+  generateGoogleAppsScriptCode,
+  generateGoogleAppsScriptSetupCode,
+  resolveAppsScriptWebAppUrl,
+  VERCEL_ENV_APPS_SCRIPT_KEY,
+} from '../utils/academicLogic';
 
 interface AppsScriptSyncModalProps {
   isOpen: boolean;
@@ -34,21 +42,57 @@ export function AppsScriptSyncModal({
   onNotify,
 }: AppsScriptSyncModalProps) {
   const syncCfg = db.settings.googleSheetSync;
-  const [webAppUrl, setWebAppUrl] = useState(syncCfg.appsScriptWebAppUrl || '');
+  const resolvedDefaultUrl = resolveAppsScriptWebAppUrl(
+    syncCfg.appsScriptWebAppUrl,
+    typeof import.meta !== 'undefined' && import.meta.env
+      ? (import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined)
+      : undefined
+  );
+  const [webAppUrl, setWebAppUrl] = useState(resolvedDefaultUrl);
   const [sheetUrl, setSheetUrl] = useState(syncCfg.spreadsheetUrl || '');
-  const [activeTab, setActiveTab] = useState<'config' | 'script'>('config');
-  const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState<'config' | 'code_gs' | 'setup_gs'>(
+    'config'
+  );
+  const [copiedCodeGs, setCopiedCodeGs] = useState(false);
+  const [copiedSetupGs, setCopiedSetupGs] = useState(false);
+  const [copiedEnvKey, setCopiedEnvKey] = useState(false);
+  const [copiedEnvVal, setCopiedEnvVal] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
 
   if (!isOpen) return null;
 
-  const scriptCode = generateGoogleAppsScriptCode(db.settings.academyName);
+  const codeGsContent = generateGoogleAppsScriptCode(db.settings.academyName);
+  const setupGsContent = generateGoogleAppsScriptSetupCode(
+    db.settings.academyName
+  );
 
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(scriptCode);
-    setCopied(true);
-    onNotify('Kode Google Apps Script (Code.gs) berhasil disalin!', 'success');
-    setTimeout(() => setCopied(false), 2500);
+  const handleCopyCodeGs = () => {
+    navigator.clipboard.writeText(codeGsContent);
+    setCopiedCodeGs(true);
+    onNotify('Kode File 1 (Code.gs) berhasil disalin!', 'success');
+    setTimeout(() => setCopiedCodeGs(false), 2500);
+  };
+
+  const handleCopySetupGs = () => {
+    navigator.clipboard.writeText(setupGsContent);
+    setCopiedSetupGs(true);
+    onNotify('Kode File 2 (Setup.gs) berhasil disalin!', 'success');
+    setTimeout(() => setCopiedSetupGs(false), 2500);
+  };
+
+  const handleCopyEnvKey = () => {
+    navigator.clipboard.writeText(VERCEL_ENV_APPS_SCRIPT_KEY);
+    setCopiedEnvKey(true);
+    onNotify('Nama Environment Variable (VITE_APPS_SCRIPT_URL) disalin!', 'success');
+    setTimeout(() => setCopiedEnvKey(false), 2500);
+  };
+
+  const handleCopyEnvValue = () => {
+    const val = webAppUrl.trim() || DEFAULT_APPS_SCRIPT_WEB_APP_URL;
+    navigator.clipboard.writeText(val);
+    setCopiedEnvVal(true);
+    onNotify('Link Server Database Apps Script untuk Vercel berhasil disalin!', 'success');
+    setTimeout(() => setCopiedEnvVal(false), 2500);
   };
 
   const handleRunSync = async (mode: 'PUSH' | 'PULL' | 'SAVE_CONFIG') => {
@@ -116,12 +160,12 @@ export function AppsScriptSyncModal({
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="px-6 pt-4 border-b border-[#14283F]/10 flex items-center gap-2 bg-white">
+        {/* Navigation Tabs (3 Separated Tabs: Config, Code.gs, Setup.gs) */}
+        <div className="px-6 pt-4 border-b border-[#14283F]/10 flex flex-wrap items-center gap-2 bg-white">
           <button
             type="button"
             onClick={() => setActiveTab('config')}
-            className={`px-4 py-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
+            className={`px-3.5 py-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'config'
                 ? 'border-[#087451] text-[#087451]'
                 : 'border-transparent text-[#14283F]/60 hover:text-[#14283F]'
@@ -131,26 +175,83 @@ export function AppsScriptSyncModal({
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('script')}
-            className={`px-4 py-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'script'
+            onClick={() => setActiveTab('code_gs')}
+            className={`px-3.5 py-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === 'code_gs'
                 ? 'border-[#087451] text-[#087451]'
                 : 'border-transparent text-[#14283F]/60 hover:text-[#14283F]'
             }`}
           >
-            2. Kode Google Apps Script (Code.gs)
+            <FileCode2 className="w-3.5 h-3.5" />
+            2. File Utama (Code.gs)
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('setup_gs')}
+            className={`px-3.5 py-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === 'setup_gs'
+                ? 'border-[#087451] text-[#087451]'
+                : 'border-transparent text-[#14283F]/60 hover:text-[#14283F]'
+            }`}
+          >
+            <Wrench className="w-3.5 h-3.5" />
+            3. File Inisialisasi (Setup.gs)
           </button>
         </div>
 
-        {activeTab === 'config' ? (
+        {activeTab === 'config' && (
           <div className="p-6 space-y-5">
-            <div className="p-4 rounded-lg bg-[#F5F0E4]/60 border border-[#C5A45B]/30 text-xs text-[#14283F] space-y-1.5">
-              <p className="font-semibold text-[#14283F]">
-                Arsitektur Sinkronisasi Otomatis Dual-Engine (Server SSE + Google Sheets Apps Script)
-              </p>
+            {/* 1 Environment Variable for Vercel.app Card */}
+            <div className="p-4 rounded-xl bg-[#087451]/10 border border-[#087451]/30 text-xs text-[#14283F] space-y-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-semibold text-[#087451]">
+                  Deploy ke Vercel.app (Cukup 1 Environment Variable Saja)
+                </p>
+                <span className="px-2 py-0.5 rounded bg-[#087451] text-white text-[10px] font-semibold">
+                  1 Env Var Setup
+                </span>
+              </div>
               <p className="text-[#14283F]/80 leading-relaxed">
-                Setiap perubahan data (Santri, Pengajar, Program, Kelas, LMS, 9 Silsilah Kitab, Fatwa, dan Pendaftaran) otomatis tersimpan di server terpusat dan disiarkan secara real-time ke seluruh perangkat HP maupun PC. Jika Anda menghubungkan URL Web App Google Apps Script di bawah ini, seluruh tabel juga otomatis disinkronkan ke 21 tab Google Sheets Anda.
+                Saat melakukan deploy di <strong>vercel.app</strong> (menu <em>Project Settings &rarr; Environment Variables</em>), Anda cukup memasukkan <strong>1 Environment Variable</strong> berikut:
               </p>
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 pt-1">
+                <div className="sm:col-span-4 bg-white p-2.5 rounded-lg border border-[#14283F]/15 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <span className="block text-[10px] text-[#14283F]/60 uppercase font-semibold">
+                      Key / Name
+                    </span>
+                    <code className="text-xs font-bold text-[#14283F] font-mono-num truncate block">
+                      {VERCEL_ENV_APPS_SCRIPT_KEY}
+                    </code>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopyEnvKey}
+                    className="px-2.5 py-1.5 rounded bg-[#F5F0E4] hover:bg-[#C5A45B]/25 text-[#14283F] font-semibold text-[11px] flex items-center gap-1 shrink-0"
+                  >
+                    {copiedEnvKey ? <Check className="w-3.5 h-3.5 text-[#087451]" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedEnvKey ? 'Tersalin' : 'Salin Key'}
+                  </button>
+                </div>
+                <div className="sm:col-span-8 bg-white p-2.5 rounded-lg border border-[#14283F]/15 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <span className="block text-[10px] text-[#14283F]/60 uppercase font-semibold">
+                      Value (Link Server Database Apps Script)
+                    </span>
+                    <code className="text-xs font-semibold text-[#087451] font-mono-num truncate block">
+                      {webAppUrl.trim() || DEFAULT_APPS_SCRIPT_WEB_APP_URL}
+                    </code>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopyEnvValue}
+                    className="px-2.5 py-1.5 rounded bg-[#087451] hover:bg-[#065d40] text-white font-semibold text-[11px] flex items-center gap-1 shrink-0"
+                  >
+                    {copiedEnvVal ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedEnvVal ? 'Tersalin' : 'Salin Value'}
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -170,7 +271,7 @@ export function AppsScriptSyncModal({
                   className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-[#14283F]/20 focus:outline-none focus:border-[#087451] font-mono-num"
                 />
                 <p className="mt-1 text-[11px] text-[#14283F]/60">
-                  Dapatkan URL ini setelah melakukan Deploy &rarr; New Deployment &rarr; Web App (Access: Anyone) di editor Google Apps Script.
+                  Dapatkan URL ini setelah memasang Code.gs &amp; Setup.gs lalu melakukan Deploy &rarr; New Deployment &rarr; Web App (Access: Anyone).
                 </p>
               </div>
 
@@ -248,26 +349,28 @@ export function AppsScriptSyncModal({
               </div>
             </div>
           </div>
-        ) : (
+        )}
+
+        {activeTab === 'code_gs' && (
           <div className="p-6 space-y-4">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-sm font-semibold text-[#14283F]">
-                  Kode Lengkap Google Apps Script (Code.gs)
+                  File 1: Kode Utama Web App &amp; Real-Time Sync (Code.gs)
                 </h3>
                 <p className="text-xs text-[#14283F]/70">
-                  Otomatis membuat 21 Tab Sheet terstruktur (Users, Students, Teachers, Programs, Classes, Books, Fatwas, dll.) dan menangani sinkronisasi JSON dua arah.
+                  Tempelkan kode ini pada file pertama bernama <code>Code.gs</code> di Google Apps Script untuk menangani API <code>doGet</code> dan <code>doPost</code>.
                 </p>
               </div>
               <button
                 type="button"
-                onClick={handleCopyCode}
+                onClick={handleCopyCodeGs}
                 className="px-4 py-2 text-xs font-semibold text-white bg-[#087451] hover:bg-[#065d40] rounded-lg flex items-center gap-1.5 shrink-0 transition-colors"
               >
-                {copied ? (
+                {copiedCodeGs ? (
                   <>
                     <Check className="w-4 h-4" />
-                    Tersalin
+                    Code.gs Tersalin
                   </>
                 ) : (
                   <>
@@ -279,7 +382,43 @@ export function AppsScriptSyncModal({
             </div>
 
             <pre className="bg-[#14283F] text-[#F5F0E4] p-4 rounded-lg text-xs font-mono-num overflow-x-auto max-h-80 leading-relaxed">
-              {scriptCode}
+              {codeGsContent}
+            </pre>
+          </div>
+        )}
+
+        {activeTab === 'setup_gs' && (
+          <div className="p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-semibold text-[#14283F]">
+                  File 2: Kode Inisialisasi &amp; Format 21 Tab Database (Setup.gs)
+                </h3>
+                <p className="text-xs text-[#14283F]/70">
+                  Buat file script baru di Google Apps Script bernama <code>Setup.gs</code>, tempelkan kode ini, lalu jalankan fungsi <code>setupIslamicAcademyDatabase()</code>.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCopySetupGs}
+                className="px-4 py-2 text-xs font-semibold text-white bg-[#087451] hover:bg-[#065d40] rounded-lg flex items-center gap-1.5 shrink-0 transition-colors"
+              >
+                {copiedSetupGs ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Setup.gs Tersalin
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    Salin Kode Setup.gs
+                  </>
+                )}
+              </button>
+            </div>
+
+            <pre className="bg-[#14283F] text-[#F5F0E4] p-4 rounded-lg text-xs font-mono-num overflow-x-auto max-h-80 leading-relaxed">
+              {setupGsContent}
             </pre>
           </div>
         )}

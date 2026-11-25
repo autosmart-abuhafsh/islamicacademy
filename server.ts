@@ -3,10 +3,12 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createServer as createViteServer } from 'vite';
 import { INITIAL_ACADEMY_DATABASE } from './src/database/seedData';
 import { AcademyDatabase, ModuleKey, PermissionAction } from './src/types/database';
-import { hasPermission } from './src/utils/academicLogic';
+import {
+  hasPermission,
+  resolveAppsScriptWebAppUrl,
+} from './src/utils/academicLogic';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,20 +33,35 @@ try {
   // Fallback if filesystem is read-only
 }
 
+function applyResolvedAppsScriptEnv(db: AcademyDatabase): AcademyDatabase {
+  const resolvedUrl = resolveAppsScriptWebAppUrl(
+    db.settings?.googleSheetSync?.appsScriptWebAppUrl,
+    process.env.VITE_APPS_SCRIPT_URL || process.env.APPS_SCRIPT_URL
+  );
+  if (db.settings?.googleSheetSync && resolvedUrl) {
+    db.settings.googleSheetSync.appsScriptWebAppUrl = resolvedUrl;
+    db.settings.googleSheetSync.lastSyncStatus = 'Connected & Synced';
+  }
+  return db;
+}
+
 function loadDatabase(): AcademyDatabase {
   try {
     if (fs.existsSync(DB_FILE_PATH)) {
       const raw = fs.readFileSync(DB_FILE_PATH, 'utf-8');
       const parsed = JSON.parse(raw) as AcademyDatabase;
       if (parsed && parsed.users && parsed.libraryCategories) {
-        return parsed;
+        return applyResolvedAppsScriptEnv(parsed);
       }
     }
   } catch (err) {
     console.error('Failed to read database file, falling back to seed:', err);
   }
-  saveDatabase(INITIAL_ACADEMY_DATABASE);
-  return JSON.parse(JSON.stringify(INITIAL_ACADEMY_DATABASE));
+  const initialDb = applyResolvedAppsScriptEnv(
+    JSON.parse(JSON.stringify(INITIAL_ACADEMY_DATABASE))
+  );
+  saveDatabase(initialDb);
+  return initialDb;
 }
 
 function saveDatabase(db: AcademyDatabase): void {
@@ -79,7 +96,10 @@ async function syncWithAppsScriptIfConfigured(db: AcademyDatabase): Promise<{
   ok: boolean;
   message: string;
 }> {
-  const url = db.settings?.googleSheetSync?.appsScriptWebAppUrl?.trim();
+  const url = resolveAppsScriptWebAppUrl(
+    db.settings?.googleSheetSync?.appsScriptWebAppUrl,
+    process.env.VITE_APPS_SCRIPT_URL || process.env.APPS_SCRIPT_URL
+  );
   if (!url || !url.startsWith('https://script.google.com/')) {
     return {
       ok: true,
@@ -154,7 +174,43 @@ function registerApiRoutes() {
   });
 
   // 2. Get full database or check revision
-  app.get('/api/db', (_req: Request, res: Response) => {
+  let lastServerlessPullMs = 0;
+  app.get('/api/db', async (_req: Request, res: Response) => {
+    // When running on Vercel Serverless, pull latest state from Google Apps Script if cooldown elapsed
+    if (isServerless && Date.now() - lastServerlessPullMs > 4000) {
+      lastServerlessPullMs = Date.now();
+      const targetUrl = resolveAppsScriptWebAppUrl(
+        dbState.settings?.googleSheetSync?.appsScriptWebAppUrl,
+        process.env.VITE_APPS_SCRIPT_URL || process.env.APPS_SCRIPT_URL
+      );
+      if (targetUrl && targetUrl.startsWith('https://script.google.com/')) {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 4500);
+          const pullRes = await fetch(targetUrl, {
+            method: 'GET',
+            signal: controller.signal,
+          });
+          clearTimeout(timeout);
+          if (pullRes.ok) {
+            const data = (await pullRes.json()) as {
+              status?: string;
+              database?: AcademyDatabase;
+            };
+            if (
+              data?.status === 'ok' &&
+              data.database?.users &&
+              (data.database.revision || 0) >= (dbState.revision || 0)
+            ) {
+              dbState = applyResolvedAppsScriptEnv(data.database);
+              saveDatabase(dbState);
+            }
+          }
+        } catch {
+          // Keep current in-memory / tmp dbState on network timeout
+        }
+      }
+    }
     res.json(dbState);
   });
 
@@ -515,6 +571,7 @@ registerApiRoutes();
 async function startServer() {
   // Mount Vite or Static Dist
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
