@@ -25,6 +25,8 @@ export interface RoleDefinition {
   permissions: Record<ModuleKey, PermissionAction[]>;
 }
 
+export type UserStatus = 'Active' | 'Inactive' | 'Archived';
+
 export interface UserAccount {
   id: string;
   username: string;
@@ -36,7 +38,7 @@ export interface UserAccount {
   gender: 'Laki-laki' | 'Perempuan';
   city: string;
   avatarUrl?: string;
-  status: 'Active' | 'Inactive' | 'Archived';
+  status: UserStatus;
   joinedAt: string;
   createdAt: string;
   updatedAt: string;

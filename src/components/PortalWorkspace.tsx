@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Award,
   BarChart3,
@@ -13,6 +13,7 @@ import {
   FileText,
   GraduationCap,
   Home,
+  KeyRound,
   LayoutDashboard,
   Library,
   LogOut,
@@ -38,6 +39,7 @@ import {
   calculateStudentProgress,
   canAccessZoomLink,
   hasPermission,
+  validateAccountCredentialsUpdate,
 } from '../utils/academicLogic';
 import { IslamicAcademyLogo } from './IslamicOrnament';
 import { KnowledgeReportsAndSettings } from './KnowledgeReportsAndSettings';
@@ -49,6 +51,7 @@ type WorkspaceMenuId =
   | 'dashboard'
   | 'users_students'
   | 'users_teachers'
+  | 'users_accounts'
   | 'users_rbac'
   | 'academic_programs'
   | 'academic_classes'
@@ -110,6 +113,26 @@ export function PortalWorkspace({
   const [activeMenu, setActiveMenu] = useState<WorkspaceMenuId>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const [selfAccountForm, setSelfAccountForm] = useState({
+    fullName: currentUser.fullName,
+    username: currentUser.username,
+    email: currentUser.email,
+    password: currentUser.passwordHash,
+    whatsapp: currentUser.whatsapp,
+    city: currentUser.city,
+  });
+
+  useEffect(() => {
+    setSelfAccountForm({
+      fullName: currentUser.fullName,
+      username: currentUser.username,
+      email: currentUser.email,
+      password: currentUser.passwordHash,
+      whatsapp: currentUser.whatsapp,
+      city: currentUser.city,
+    });
+  }, [currentUser]);
 
   const currentStudent = db.students.find((s) => s.userId === currentUser.id);
   const currentTeacher = db.teachers.find((t) => t.userId === currentUser.id);
@@ -185,6 +208,7 @@ export function PortalWorkspace({
         group: 'MANAJEMEN PENGGUNA',
         items: [
           { id: 'users_students', label: 'Santri & Pengajar', icon: Users },
+          { id: 'users_accounts', label: 'Manajemen Akun & Password', icon: KeyRound },
           { id: 'users_rbac', label: 'Role & Permission', icon: Shield },
         ],
       });
@@ -947,14 +971,18 @@ export function PortalWorkspace({
           {/* 2. USER MANAGEMENT & RBAC */}
           {(activeMenu === 'users_students' ||
             activeMenu === 'users_teachers' ||
+            activeMenu === 'users_accounts' ||
             activeMenu === 'users_rbac') && (
             <UsersAndAcademicAdmin
+              key={activeMenu}
               db={db}
               currentUser={currentUser}
               mode="users"
               initialSubTab={
                 activeMenu === 'users_rbac'
                   ? 'rbac'
+                  : activeMenu === 'users_accounts'
+                  ? 'admins'
                   : activeMenu === 'users_teachers'
                   ? 'teachers'
                   : 'students'
@@ -971,6 +999,7 @@ export function PortalWorkspace({
             activeMenu === 'academic_admissions' ||
             activeMenu === 'academic_announcements') && (
             <UsersAndAcademicAdmin
+              key={activeMenu}
               db={db}
               currentUser={currentUser}
               mode="academic"
@@ -981,6 +1010,8 @@ export function PortalWorkspace({
                   ? 'schedules'
                   : activeMenu === 'academic_classes'
                   ? 'classes'
+                  : activeMenu === 'academic_announcements'
+                  ? 'announcements'
                   : 'programs'
               }
               onMutate={onMutate}
@@ -996,6 +1027,7 @@ export function PortalWorkspace({
             activeMenu === 'lms_exams' ||
             activeMenu === 'lms_progress') && (
             <LmsModule
+              key={activeMenu}
               db={db}
               currentUser={currentUser}
               initialTab={
@@ -1022,6 +1054,7 @@ export function PortalWorkspace({
             activeMenu === 'library_silsilah' ||
             activeMenu === 'library_pathway') && (
             <LibraryModule
+              key={activeMenu}
               db={db}
               currentUser={currentUser}
               initialSubView={
@@ -1041,6 +1074,7 @@ export function PortalWorkspace({
           {(activeMenu === 'knowledge_fatwa' ||
             activeMenu === 'knowledge_forum') && (
             <KnowledgeReportsAndSettings
+              key={activeMenu}
               db={db}
               currentUser={currentUser}
               mode="knowledge"
@@ -1053,6 +1087,7 @@ export function PortalWorkspace({
           {/* 7. ANALYTICS & REPORTS */}
           {activeMenu === 'reports' && (
             <KnowledgeReportsAndSettings
+              key={activeMenu}
               db={db}
               currentUser={currentUser}
               mode="reports"
@@ -1065,6 +1100,7 @@ export function PortalWorkspace({
           {/* 8. SYSTEM SETTINGS */}
           {activeMenu === 'settings' && (
             <KnowledgeReportsAndSettings
+              key={activeMenu}
               db={db}
               currentUser={currentUser}
               mode="settings"
@@ -1074,42 +1110,222 @@ export function PortalWorkspace({
             />
           )}
 
-          {/* 9. USER PROFILE */}
+          {/* 9. USER PROFILE & SELF-SERVICE ID/PASSWORD EDITOR */}
           {activeMenu === 'profile' && (
-            <div className="bg-white rounded-xl p-6 border border-[#14283F]/10 max-w-2xl space-y-4 text-xs">
-              <div className="text-xs font-semibold text-[#087451]">
-                Profil Akun Pengguna Terautentikasi
+            <div className="bg-white rounded-xl p-6 border border-[#14283F]/10 max-w-2xl space-y-5 text-xs">
+              <div>
+                <div className="text-xs font-semibold text-[#087451]">
+                  Profil &amp; Pengaturan Kredensial Akun Saya
+                </div>
+                <h2 className="text-xl font-display font-bold text-[#14283F] mt-0.5">
+                  {currentUser.fullName}
+                </h2>
+                <p className="text-[#14283F]/70 mt-1">
+                  Anda dapat memperbarui ID Login (Username), Password, Email, dan informasi kontak akun Anda secara langsung di bawah ini.
+                </p>
               </div>
-              <h2 className="text-xl font-display font-bold text-[#14283F]">
-                {currentUser.fullName}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="p-3.5 rounded-lg bg-[#F5F0E4]/50">
-                  <div className="text-[#14283F]/60">Username & Email</div>
-                  <div className="font-mono-num font-semibold mt-0.5">
-                    {currentUser.username} · {currentUser.email}
+
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const validation = validateAccountCredentialsUpdate({
+                    users: db.users,
+                    targetUserId: currentUser.id,
+                    username: selfAccountForm.username,
+                    email: selfAccountForm.email,
+                    password: selfAccountForm.password,
+                    requirePassword: true,
+                  });
+                  if (!validation.valid) {
+                    onNotify(validation.error || 'Data akun tidak valid.', 'error');
+                    return;
+                  }
+                  const nowIso = new Date().toISOString();
+                  await onMutate({
+                    moduleKey: 'dashboard',
+                    action: 'view',
+                    actionLabel: 'UPDATE_PROFIL_ID_PASSWORD',
+                    targetDescription: `Memperbarui profil, ID Login (${validation.cleanUsername}) & password akun ${selfAccountForm.fullName}`,
+                    updater: (prev) => ({
+                      ...prev,
+                      users: prev.users.map((u) =>
+                        u.id === currentUser.id
+                          ? {
+                              ...u,
+                              fullName: selfAccountForm.fullName.trim(),
+                              username: validation.cleanUsername,
+                              email: validation.cleanEmail,
+                              passwordHash: selfAccountForm.password.trim(),
+                              whatsapp: selfAccountForm.whatsapp.trim(),
+                              city: selfAccountForm.city.trim(),
+                              updatedAt: nowIso,
+                            }
+                          : u
+                      ),
+                      students: prev.students.map((s) =>
+                        s.userId === currentUser.id
+                          ? {
+                              ...s,
+                              fullName: selfAccountForm.fullName.trim(),
+                              email: validation.cleanEmail,
+                              whatsapp: selfAccountForm.whatsapp.trim(),
+                              city: selfAccountForm.city.trim(),
+                            }
+                          : s
+                      ),
+                      teachers: prev.teachers.map((t) =>
+                        t.userId === currentUser.id
+                          ? {
+                              ...t,
+                              fullName: selfAccountForm.fullName.trim(),
+                              email: validation.cleanEmail,
+                              whatsapp: selfAccountForm.whatsapp.trim(),
+                            }
+                          : t
+                      ),
+                    }),
+                  });
+                  onNotify(
+                    `Profil, ID Login (${validation.cleanUsername}) & Password Anda berhasil diperbarui!`,
+                    'success'
+                  );
+                }}
+                className="space-y-4 pt-2 border-t border-[#14283F]/10"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="self-fullname" className="block font-semibold mb-1">
+                      Nama Lengkap *
+                    </label>
+                    <input
+                      id="self-fullname"
+                      type="text"
+                      required
+                      value={selfAccountForm.fullName}
+                      onChange={(e) =>
+                        setSelfAccountForm({
+                          ...selfAccountForm,
+                          fullName: e.target.value,
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#14283F]/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold mb-1">
+                      Role &amp; Hak Akses
+                    </label>
+                    <div className="px-3.5 py-2.5 rounded-lg bg-[#F5F0E4]/65 font-semibold text-[#087451]">
+                      {db.roles.find((r) => r.id === currentUser.role)?.name} (
+                      {currentUser.role})
+                    </div>
                   </div>
                 </div>
-                <div className="p-3.5 rounded-lg bg-[#F5F0E4]/50">
-                  <div className="text-[#14283F]/60">Role & Hak Akses</div>
-                  <div className="font-semibold text-[#087451] mt-0.5">
-                    {db.roles.find((r) => r.id === currentUser.role)?.name} (
-                    {currentUser.role})
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-[#F5F0E4]/60 border border-[#C5A45B]/35">
+                  <div>
+                    <label htmlFor="self-username" className="block font-bold text-[#14283F] mb-1">
+                      ID Login (Username) *
+                    </label>
+                    <input
+                      id="self-username"
+                      type="text"
+                      required
+                      value={selfAccountForm.username}
+                      onChange={(e) =>
+                        setSelfAccountForm({
+                          ...selfAccountForm,
+                          username: e.target.value,
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#14283F]/25 bg-white font-mono-num font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="self-password" className="block font-bold text-[#087451] mb-1">
+                      Password Login *
+                    </label>
+                    <input
+                      id="self-password"
+                      type="text"
+                      required
+                      value={selfAccountForm.password}
+                      onChange={(e) =>
+                        setSelfAccountForm({
+                          ...selfAccountForm,
+                          password: e.target.value,
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#087451]/35 bg-white font-mono-num font-bold text-[#087451]"
+                    />
                   </div>
                 </div>
-                <div className="p-3.5 rounded-lg bg-[#F5F0E4]/50">
-                  <div className="text-[#14283F]/60">Nomor WhatsApp</div>
-                  <div className="font-mono-num font-semibold mt-0.5">
-                    {currentUser.whatsapp}
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label htmlFor="self-email" className="block font-semibold mb-1">
+                      Alamat Email *
+                    </label>
+                    <input
+                      id="self-email"
+                      type="email"
+                      required
+                      value={selfAccountForm.email}
+                      onChange={(e) =>
+                        setSelfAccountForm({
+                          ...selfAccountForm,
+                          email: e.target.value,
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#14283F]/20 font-mono-num"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="self-whatsapp" className="block font-semibold mb-1">
+                      Nomor WhatsApp
+                    </label>
+                    <input
+                      id="self-whatsapp"
+                      type="text"
+                      value={selfAccountForm.whatsapp}
+                      onChange={(e) =>
+                        setSelfAccountForm({
+                          ...selfAccountForm,
+                          whatsapp: e.target.value,
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#14283F]/20 font-mono-num"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="self-city" className="block font-semibold mb-1">
+                      Domisili / Kota
+                    </label>
+                    <input
+                      id="self-city"
+                      type="text"
+                      value={selfAccountForm.city}
+                      onChange={(e) =>
+                        setSelfAccountForm({
+                          ...selfAccountForm,
+                          city: e.target.value,
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#14283F]/20"
+                    />
                   </div>
                 </div>
-                <div className="p-3.5 rounded-lg bg-[#F5F0E4]/50">
-                  <div className="text-[#14283F]/60">Domisili & Tanggal Gabung</div>
-                  <div className="font-semibold mt-0.5">
-                    {currentUser.city} · {currentUser.joinedAt}
-                  </div>
+
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 rounded-lg bg-[#087451] hover:bg-[#065d40] text-white font-semibold flex items-center gap-2 transition-colors"
+                  >
+                    <KeyRound className="w-4 h-4" />
+                    Simpan Perubahan ID &amp; Password Saya
+                  </button>
                 </div>
-              </div>
+              </form>
             </div>
           )}
         </main>

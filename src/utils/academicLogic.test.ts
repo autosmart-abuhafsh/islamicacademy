@@ -12,6 +12,7 @@ import {
   normalizeSearchText,
   resolveAppsScriptWebAppUrl,
   searchAndFilterBooks,
+  validateAccountCredentialsUpdate,
   VERCEL_ENV_APPS_SCRIPT_KEY,
   verifyOwnerSettingsPasscode,
 } from './academicLogic';
@@ -373,5 +374,43 @@ test('resolveAppsScriptWebAppUrl resolves single Vercel environment variable VIT
     ),
     'https://script.google.com/macros/s/CUSTOM_URL/exec'
   );
+});
+
+test('validateAccountCredentialsUpdate enforces unique ID/username, email, and password length', () => {
+  const existingUsers = [
+    { id: 'u1', username: 'admin', email: 'admin@academy.id' },
+    { id: 'u2', username: 'farhan', email: 'farhan@academy.id' },
+  ];
+
+  // Updating u1 with new unique username and valid password succeeds
+  const validRes = validateAccountCredentialsUpdate({
+    users: existingUsers,
+    targetUserId: 'u1',
+    username: 'super_admin_id',
+    email: 'admin@academy.id',
+    password: 'newpassword2026',
+  });
+  assert.equal(validRes.valid, true);
+  assert.equal(validRes.cleanUsername, 'super_admin_id');
+
+  // Duplicate username across different user fails
+  const dupRes = validateAccountCredentialsUpdate({
+    users: existingUsers,
+    targetUserId: 'u1',
+    username: 'farhan',
+    email: 'admin@academy.id',
+    password: 'newpassword2026',
+  });
+  assert.equal(dupRes.valid, false);
+
+  // Short password fails
+  const shortPassRes = validateAccountCredentialsUpdate({
+    users: existingUsers,
+    targetUserId: 'u1',
+    username: 'admin',
+    email: 'admin@academy.id',
+    password: '123',
+  });
+  assert.equal(shortPassRes.valid, false);
 });
 

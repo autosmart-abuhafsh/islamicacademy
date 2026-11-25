@@ -394,12 +394,16 @@ function registerApiRoutes() {
     saveDatabase(dbState);
     broadcastDatabaseUpdate();
 
-    // Non-blocking or quick sync with Google Apps Script if URL is configured
+    // Non-blocking background sync with Google Apps Script so UI mutations respond instantaneously
     if (
       dbState.settings.googleSheetSync.autoSyncEnabled &&
       dbState.settings.googleSheetSync.appsScriptWebAppUrl
     ) {
-      await syncWithAppsScriptIfConfigured(dbState);
+      if (isServerless) {
+        await syncWithAppsScriptIfConfigured(dbState);
+      } else {
+        void syncWithAppsScriptIfConfigured(dbState);
+      }
     }
 
     res.json({

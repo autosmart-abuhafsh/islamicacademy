@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Archive,
   CheckCircle2,
   Download,
   Edit3,
+  Eye,
+  EyeOff,
+  KeyRound,
   Plus,
   Search,
   Shield,
@@ -25,8 +28,12 @@ import {
   StudentProfile,
   TeacherProfile,
   UserAccount,
+  UserStatus,
 } from '../types/database';
-import { hasPermission } from '../utils/academicLogic';
+import {
+  hasPermission,
+  validateAccountCredentialsUpdate,
+} from '../utils/academicLogic';
 
 interface UsersAndAcademicAdminProps {
   db: AcademyDatabase;
@@ -58,8 +65,49 @@ export function UsersAndAcademicAdmin({
     'programs' | 'classes' | 'schedules' | 'admissions' | 'announcements'
   >((initialSubTab as 'programs') || 'programs');
 
+  useEffect(() => {
+    if (mode === 'users' && initialSubTab) {
+      if (
+        initialSubTab === 'students' ||
+        initialSubTab === 'teachers' ||
+        initialSubTab === 'admins' ||
+        initialSubTab === 'rbac'
+      ) {
+        setUserSubTab(initialSubTab);
+      }
+    } else if (mode === 'academic' && initialSubTab) {
+      if (
+        initialSubTab === 'programs' ||
+        initialSubTab === 'classes' ||
+        initialSubTab === 'schedules' ||
+        initialSubTab === 'admissions' ||
+        initialSubTab === 'announcements'
+      ) {
+        setAcadSubTab(initialSubTab);
+      }
+    }
+  }, [mode, initialSubTab]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [programFilter, setProgramFilter] = useState('ALL');
+  const [accountRoleFilter, setAccountRoleFilter] = useState<'ALL' | 'ADMIN' | 'PENGAJAR' | 'SANTRI'>('ALL');
+  const [accountSearchQuery, setAccountSearchQuery] = useState('');
+  const [visiblePasswordIds, setVisiblePasswordIds] = useState<Record<string, boolean>>({});
+
+  // Account & ID/Password Management Modal (Admin & All Members)
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<UserAccount | null>(null);
+  const [accountForm, setAccountForm] = useState({
+    fullName: '',
+    username: '',
+    email: '',
+    password: '',
+    role: 'admin_akademik' as RoleId,
+    whatsapp: '',
+    gender: 'Laki-laki' as 'Laki-laki' | 'Perempuan',
+    city: 'Jakarta',
+    status: 'Active' as UserStatus,
+  });
 
   // Add Student Modal
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
@@ -630,6 +678,157 @@ export function UsersAndAcademicAdmin({
     });
   };
 
+  const openEditAccountModal = (acc: UserAccount) => {
+    setEditingAccount(acc);
+    setAccountForm({
+      fullName: acc.fullName,
+      username: acc.username,
+      email: acc.email,
+      password: acc.passwordHash,
+      role: acc.role,
+      whatsapp: acc.whatsapp,
+      gender: acc.gender,
+      city: acc.city,
+      status: acc.status,
+    });
+    setIsAccountModalOpen(true);
+  };
+
+  const openCreateAccountModal = () => {
+    setEditingAccount(null);
+    setAccountForm({
+      fullName: '',
+      username: '',
+      email: '',
+      password: '',
+      role: 'admin_akademik',
+      whatsapp: '+62 812-',
+      gender: 'Laki-laki',
+      city: 'Jakarta',
+      status: 'Active',
+    });
+    setIsAccountModalOpen(true);
+  };
+
+  const handleSaveAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!accountForm.fullName.trim()) {
+      onNotify('Nama lengkap pemilik akun wajib diisi.', 'error');
+      return;
+    }
+
+    const validation = validateAccountCredentialsUpdate({
+      users: db.users,
+      targetUserId: editingAccount?.id,
+      username: accountForm.username,
+      email: accountForm.email,
+      password: accountForm.password,
+      requirePassword: true,
+    });
+
+    if (!validation.valid) {
+      onNotify(validation.error || 'Data akun tidak valid.', 'error');
+      return;
+    }
+
+    const nowIso = new Date().toISOString();
+
+    if (editingAccount) {
+      const updatedUser: UserAccount = {
+        ...editingAccount,
+        fullName: accountForm.fullName.trim(),
+        username: validation.cleanUsername,
+        email: validation.cleanEmail,
+        passwordHash: accountForm.password.trim(),
+        role: accountForm.role,
+        whatsapp: accountForm.whatsapp.trim(),
+        gender: accountForm.gender,
+        city: accountForm.city.trim(),
+        status: accountForm.status,
+        updatedAt: nowIso,
+      };
+
+      await onMutate({
+        moduleKey: 'users',
+        action: 'edit',
+        actionLabel: 'EDIT_AKUN_ID_PASSWORD',
+        targetDescription: `Memperbarui ID Login (${updatedUser.username}), Password & Role akun ${updatedUser.fullName}`,
+        updater: (prev) => ({
+          ...prev,
+          users: prev.users.map((u) =>
+            u.id === editingAccount.id ? updatedUser : u
+          ),
+          students: prev.students.map((s) =>
+            s.userId === editingAccount.id
+              ? {
+                  ...s,
+                  fullName: updatedUser.fullName,
+                  email: updatedUser.email,
+                  whatsapp: updatedUser.whatsapp,
+                  gender: updatedUser.gender,
+                  city: updatedUser.city,
+                  accountStatus: updatedUser.status,
+                }
+              : s
+          ),
+          teachers: prev.teachers.map((t) =>
+            t.userId === editingAccount.id
+              ? {
+                  ...t,
+                  fullName: updatedUser.fullName,
+                  email: updatedUser.email,
+                  whatsapp: updatedUser.whatsapp,
+                  accountStatus: updatedUser.status,
+                }
+              : t
+          ),
+        }),
+      });
+
+      setIsAccountModalOpen(false);
+      setEditingAccount(null);
+      onNotify(
+        `Akun "${updatedUser.fullName}" (ID: ${updatedUser.username}) beserta password berhasil diperbarui!`,
+        'success'
+      );
+      return;
+    }
+
+    const newUserId = `usr-${Date.now()}`;
+    const newAccount: UserAccount = {
+      id: newUserId,
+      fullName: accountForm.fullName.trim(),
+      username: validation.cleanUsername,
+      email: validation.cleanEmail,
+      passwordHash: accountForm.password.trim(),
+      role: accountForm.role,
+      whatsapp: accountForm.whatsapp.trim(),
+      gender: accountForm.gender,
+      city: accountForm.city.trim() || 'Jakarta',
+      status: accountForm.status,
+      joinedAt: nowIso.slice(0, 10),
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+
+    await onMutate({
+      moduleKey: 'users',
+      action: 'create',
+      actionLabel: 'TAMBAH_AKUN_PENGGUNA',
+      targetDescription: `Menambahkan akun baru ${newAccount.fullName} (ID: ${newAccount.username}, Role: ${newAccount.role})`,
+      updater: (prev) => ({
+        ...prev,
+        users: [newAccount, ...prev.users],
+      }),
+    });
+
+    setIsAccountModalOpen(false);
+    onNotify(
+      `Akun baru "${newAccount.fullName}" (ID Login: ${newAccount.username}) berhasil dibuat!`,
+      'success'
+    );
+  };
+
   // MODE A: USER MANAGEMENT & RBAC
   if (mode === 'users') {
     const filteredStudents = db.students.filter((st) => {
@@ -659,7 +858,7 @@ export function UsersAndAcademicAdmin({
               },
               {
                 id: 'admins',
-                label: `Akun Pengguna (${db.users.length})`,
+                label: `Manajemen Akun & ID/Password (${db.users.length})`,
               },
               { id: 'rbac', label: 'Role & Permission Matrix (RBAC)' },
             ].map((t) => (
@@ -724,6 +923,16 @@ export function UsersAndAcademicAdmin({
               >
                 <Plus className="w-4 h-4" />
                 Tambah Pengajar
+              </button>
+            )}
+            {userSubTab === 'admins' && (
+              <button
+                type="button"
+                onClick={openCreateAccountModal}
+                className="px-4 py-2 text-xs font-semibold text-white bg-[#087451] hover:bg-[#065d40] rounded-lg flex items-center gap-1.5"
+              >
+                <UserPlus className="w-4 h-4" />
+                Tambah Akun Admin / Anggota
               </button>
             )}
           </div>
@@ -806,6 +1015,20 @@ export function UsersAndAcademicAdmin({
                         <button
                           type="button"
                           onClick={() => {
+                            const linkedAcc = db.users.find(
+                              (u) => u.id === st.userId
+                            );
+                            if (linkedAcc) {
+                              openEditAccountModal(linkedAcc);
+                            }
+                          }}
+                          className="text-[#14283F] font-semibold hover:text-[#087451] hover:underline"
+                        >
+                          ID &amp; Password
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
                             setEditingStudent(st);
                             setStudentForm({
                               fullName: st.fullName,
@@ -822,7 +1045,7 @@ export function UsersAndAcademicAdmin({
                           }}
                           className="text-[#087451] font-semibold hover:underline"
                         >
-                          Edit
+                          Edit Profil
                         </button>
                         <button
                           type="button"
@@ -845,66 +1068,234 @@ export function UsersAndAcademicAdmin({
         {/* TEACHERS TABLE */}
         {userSubTab === 'teachers' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {db.teachers.map((tch) => (
-              <div
-                key={tch.id}
-                className="bg-white rounded-xl p-5 border border-[#14283F]/10 space-y-3"
-              >
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-mono-num font-bold text-[#087451]">
-                    {tch.nip}
-                  </span>
-                  <span className="font-semibold">
-                    Status: {tch.accountStatus}
-                  </span>
+            {db.teachers.map((tch) => {
+              const linkedUser = db.users.find((u) => u.id === tch.userId);
+              return (
+                <div
+                  key={tch.id}
+                  className="bg-white rounded-xl p-5 border border-[#14283F]/10 space-y-3"
+                >
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-mono-num font-bold text-[#087451]">
+                      {tch.nip}
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="font-semibold">
+                        Status: {tch.accountStatus}
+                      </span>
+                      {linkedUser && (
+                        <button
+                          type="button"
+                          onClick={() => openEditAccountModal(linkedUser)}
+                          className="px-2.5 py-1 rounded-md bg-[#F5F0E4] hover:bg-[#C5A45B]/25 text-[#14283F] font-semibold flex items-center gap-1"
+                        >
+                          <KeyRound className="w-3 h-3 text-[#087451]" />
+                          Edit ID &amp; Password
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <h3 className="text-base font-bold text-[#14283F]">
+                    {tch.fullName}
+                  </h3>
+                  <p className="text-xs text-[#14283F]/75 leading-relaxed">
+                    {tch.biography}
+                  </p>
+                  <div className="text-xs text-[#14283F]/70">
+                    <strong>Bidang Keahlian:</strong> {tch.expertise.join(' · ')}
+                  </div>
+                  <div className="pt-2 border-t border-[#14283F]/10 text-xs text-[#14283F]/65 flex flex-wrap items-center justify-between gap-2">
+                    <span>
+                      ID Login: <strong className="font-mono-num text-[#14283F]">{linkedUser?.username || '-'}</strong> · {tch.email}
+                    </span>
+                    <span className="font-mono-num">{tch.whatsapp}</span>
+                  </div>
                 </div>
-                <h3 className="text-base font-bold text-[#14283F]">
-                  {tch.fullName}
-                </h3>
-                <p className="text-xs text-[#14283F]/75 leading-relaxed">
-                  {tch.biography}
-                </p>
-                <div className="text-xs text-[#14283F]/70">
-                  <strong>Bidang Keahlian:</strong> {tch.expertise.join(' · ')}
-                </div>
-                <div className="pt-2 border-t border-[#14283F]/10 text-xs text-[#14283F]/65 flex items-center justify-between">
-                  <span>{tch.email}</span>
-                  <span className="font-mono-num">{tch.whatsapp}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
-        {/* ALL USER ACCOUNTS */}
+        {/* ALL USER ACCOUNTS (ADMIN & ANGGOTA ID/PASSWORD MANAGEMENT) */}
         {userSubTab === 'admins' && (
-          <div className="bg-white rounded-xl p-6 border border-[#14283F]/10 overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-[#14283F]/15 text-[#14283F]/70">
-                  <th className="py-3 px-3 font-semibold">Nama Pengguna</th>
-                  <th className="py-3 px-3 font-semibold">Username / Email</th>
-                  <th className="py-3 px-3 font-semibold">Role RBAC</th>
-                  <th className="py-3 px-3 font-semibold">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#14283F]/10">
-                {db.users.map((u) => (
-                  <tr key={u.id} className="hover:bg-[#F5F0E4]/40">
-                    <td className="py-3 px-3 font-bold text-[#14283F]">
-                      {u.fullName}
-                    </td>
-                    <td className="py-3 px-3 font-mono-num">
-                      {u.username} · {u.email}
-                    </td>
-                    <td className="py-3 px-3 font-semibold text-[#087451]">
-                      {u.role}
-                    </td>
-                    <td className="py-3 px-3">{u.status}</td>
-                  </tr>
+          <div className="bg-white rounded-xl p-6 border border-[#14283F]/10 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-base font-bold text-[#14283F]">
+                  Manajemen Akun, ID Login (Username) &amp; Password Seluruh Pengguna
+                </h3>
+                <p className="text-xs text-[#14283F]/70">
+                  Kelola akun Administrator, Asatidzah Pengajar, dan Santri. Anda dapat mengedit ID Login (Username), Email, Password, Role, maupun Status Akun secara langsung.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {(
+                  [
+                    { id: 'ALL', label: `Semua (${db.users.length})` },
+                    {
+                      id: 'ADMIN',
+                      label: `Admin (${
+                        db.users.filter((u) => u.role.includes('admin')).length
+                      })`,
+                    },
+                    {
+                      id: 'PENGAJAR',
+                      label: `Pengajar (${
+                        db.users.filter((u) => u.role === 'pengajar').length
+                      })`,
+                    },
+                    {
+                      id: 'SANTRI',
+                      label: `Santri (${
+                        db.users.filter((u) => u.role === 'santri').length
+                      })`,
+                    },
+                  ] as const
+                ).map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setAccountRoleFilter(f.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                      accountRoleFilter === f.id
+                        ? 'bg-[#14283F] text-white'
+                        : 'bg-[#F5F0E4]/65 text-[#14283F]/75 hover:text-[#14283F]'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </div>
+
+            <div className="relative">
+              <Search className="w-4 h-4 text-[#14283F]/50 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="search"
+                aria-label="Cari Akun Pengguna"
+                value={accountSearchQuery}
+                onChange={(e) => setAccountSearchQuery(e.target.value)}
+                placeholder="Cari berdasarkan nama, ID Login (username), email, atau role..."
+                className="w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-[#14283F]/20"
+              />
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-[#14283F]/15 text-[#14283F]/70">
+                    <th className="py-3 px-3 font-semibold">Nama Lengkap &amp; Kota</th>
+                    <th className="py-3 px-3 font-semibold">ID Login (Username)</th>
+                    <th className="py-3 px-3 font-semibold">Email &amp; WhatsApp</th>
+                    <th className="py-3 px-3 font-semibold">Password Login</th>
+                    <th className="py-3 px-3 font-semibold">Role RBAC</th>
+                    <th className="py-3 px-3 font-semibold">Status</th>
+                    <th className="py-3 px-3 font-semibold text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#14283F]/10">
+                  {db.users
+                    .filter((u) => {
+                      if (
+                        accountRoleFilter === 'ADMIN' &&
+                        !u.role.includes('admin')
+                      ) {
+                        return false;
+                      }
+                      if (
+                        accountRoleFilter === 'PENGAJAR' &&
+                        u.role !== 'pengajar'
+                      ) {
+                        return false;
+                      }
+                      if (
+                        accountRoleFilter === 'SANTRI' &&
+                        u.role !== 'santri'
+                      ) {
+                        return false;
+                      }
+                      if (!accountSearchQuery.trim()) return true;
+                      const q = accountSearchQuery.toLowerCase();
+                      return (
+                        u.fullName.toLowerCase().includes(q) ||
+                        u.username.toLowerCase().includes(q) ||
+                        u.email.toLowerCase().includes(q) ||
+                        u.role.toLowerCase().includes(q)
+                      );
+                    })
+                    .map((u) => {
+                      const showPass = Boolean(visiblePasswordIds[u.id]);
+                      return (
+                        <tr key={u.id} className="hover:bg-[#F5F0E4]/40">
+                          <td className="py-3 px-3">
+                            <div className="font-bold text-[#14283F]">
+                              {u.fullName}
+                            </div>
+                            <div className="text-[#14283F]/60">
+                              {u.city} · Sejak {u.joinedAt}
+                            </div>
+                          </td>
+                          <td className="py-3 px-3">
+                            <code className="px-2 py-1 rounded bg-[#F5F0E4] text-[#14283F] font-mono-num font-bold">
+                              {u.username}
+                            </code>
+                          </td>
+                          <td className="py-3 px-3">
+                            <div className="font-mono-num">{u.email}</div>
+                            <div className="text-[#14283F]/60 font-mono-num">
+                              {u.whatsapp}
+                            </div>
+                          </td>
+                          <td className="py-3 px-3">
+                            <div className="flex items-center gap-1.5">
+                              <code className="px-2 py-0.5 rounded bg-[#F5F0E4]/70 font-mono-num text-[#14283F]">
+                                {showPass ? u.passwordHash : '••••••••'}
+                              </code>
+                              <button
+                                type="button"
+                                aria-label={
+                                  showPass
+                                    ? 'Sembunyikan password'
+                                    : 'Lihat password'
+                                }
+                                onClick={() =>
+                                  setVisiblePasswordIds((prev) => ({
+                                    ...prev,
+                                    [u.id]: !prev[u.id],
+                                  }))
+                                }
+                                className="p-1 rounded hover:bg-[#14283F]/10 text-[#14283F]/65"
+                              >
+                                {showPass ? (
+                                  <EyeOff className="w-3.5 h-3.5" />
+                                ) : (
+                                  <Eye className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            </div>
+                          </td>
+                          <td className="py-3 px-3 font-semibold text-[#087451]">
+                            {db.roles.find((r) => r.id === u.role)?.name || u.role}
+                          </td>
+                          <td className="py-3 px-3 font-semibold">
+                            {u.status}
+                          </td>
+                          <td className="py-3 px-3 text-right space-x-2 whitespace-nowrap">
+                            <button
+                              type="button"
+                              onClick={() => openEditAccountModal(u)}
+                              className="px-3 py-1.5 rounded-lg bg-[#087451] hover:bg-[#065d40] text-white font-semibold inline-flex items-center gap-1"
+                            >
+                              <KeyRound className="w-3.5 h-3.5" />
+                              Edit ID &amp; Password
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -1298,6 +1689,198 @@ export function UsersAndAcademicAdmin({
                     className="px-4 py-2 rounded-lg bg-[#087451] text-white font-semibold"
                   >
                     Simpan Pengajar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ACCOUNT & ID/PASSWORD MANAGEMENT MODAL (ADMIN & ANGGOTA LAINNYA) */}
+        {isAccountModalOpen && (
+          <div
+            className="fixed inset-0 z-50 bg-[#14283F]/65 backdrop-blur-xs flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="acc-modal-title"
+          >
+            <div className="bg-white border border-[#C5A45B]/45 rounded-xl max-w-lg w-full overflow-hidden shadow-xl">
+              <div className="bg-[#14283F] text-white px-5 py-4 flex items-center justify-between border-b border-[#C5A45B]/30">
+                <div className="flex items-center gap-2.5">
+                  <KeyRound className="w-4 h-4 text-[#C5A45B]" />
+                  <h3 id="acc-modal-title" className="text-sm font-bold">
+                    {editingAccount
+                      ? `Edit Akun, ID Login & Password — ${editingAccount.fullName}`
+                      : 'Tambah Akun Baru (Admin / Pengajar / Santri)'}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAccountModalOpen(false)}
+                  aria-label="Tutup modal manajemen akun"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveAccount} className="p-5 space-y-3.5 text-xs">
+                <div>
+                  <label htmlFor="acc-fullname" className="block font-semibold mb-1">
+                    Nama Lengkap Pemilik Akun *
+                  </label>
+                  <input
+                    id="acc-fullname"
+                    type="text"
+                    required
+                    value={accountForm.fullName}
+                    onChange={(e) =>
+                      setAccountForm({ ...accountForm, fullName: e.target.value })
+                    }
+                    placeholder="Contoh: Ustadz H. Abdurrahman, Lc."
+                    className="w-full px-3 py-2 rounded-lg border border-[#14283F]/20"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-[#F5F0E4]/65 border border-[#C5A45B]/35">
+                  <div>
+                    <label htmlFor="acc-username" className="block font-bold text-[#14283F] mb-1">
+                      ID Login (Username) *
+                    </label>
+                    <input
+                      id="acc-username"
+                      type="text"
+                      required
+                      value={accountForm.username}
+                      onChange={(e) =>
+                        setAccountForm({ ...accountForm, username: e.target.value })
+                      }
+                      placeholder="Contoh: admin_utama"
+                      className="w-full px-3 py-2 rounded-lg border border-[#14283F]/25 bg-white font-mono-num font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="acc-password" className="block font-bold text-[#087451] mb-1">
+                      Password Login *
+                    </label>
+                    <input
+                      id="acc-password"
+                      type="text"
+                      required
+                      value={accountForm.password}
+                      onChange={(e) =>
+                        setAccountForm({ ...accountForm, password: e.target.value })
+                      }
+                      placeholder="Minimal 4 karakter..."
+                      className="w-full px-3 py-2 rounded-lg border border-[#087451]/35 bg-white font-mono-num font-bold text-[#087451]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="acc-email" className="block font-semibold mb-1">
+                      Alamat Email *
+                    </label>
+                    <input
+                      id="acc-email"
+                      type="email"
+                      required
+                      value={accountForm.email}
+                      onChange={(e) =>
+                        setAccountForm({ ...accountForm, email: e.target.value })
+                      }
+                      placeholder="email@darulilm-academy.id"
+                      className="w-full px-3 py-2 rounded-lg border border-[#14283F]/20 font-mono-num"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="acc-whatsapp" className="block font-semibold mb-1">
+                      Nomor WhatsApp
+                    </label>
+                    <input
+                      id="acc-whatsapp"
+                      type="text"
+                      value={accountForm.whatsapp}
+                      onChange={(e) =>
+                        setAccountForm({ ...accountForm, whatsapp: e.target.value })
+                      }
+                      className="w-full px-3 py-2 rounded-lg border border-[#14283F]/20 font-mono-num"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label htmlFor="acc-role" className="block font-semibold mb-1">
+                      Role &amp; Hak Akses
+                    </label>
+                    <select
+                      id="acc-role"
+                      value={accountForm.role}
+                      onChange={(e) =>
+                        setAccountForm({
+                          ...accountForm,
+                          role: e.target.value as RoleId,
+                        })
+                      }
+                      className="w-full px-3 py-2 rounded-lg border border-[#14283F]/20 bg-white"
+                    >
+                      {db.roles.map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="acc-city" className="block font-semibold mb-1">
+                      Domisili / Kota
+                    </label>
+                    <input
+                      id="acc-city"
+                      type="text"
+                      value={accountForm.city}
+                      onChange={(e) =>
+                        setAccountForm({ ...accountForm, city: e.target.value })
+                      }
+                      className="w-full px-3 py-2 rounded-lg border border-[#14283F]/20"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="acc-status" className="block font-semibold mb-1">
+                      Status Akun
+                    </label>
+                    <select
+                      id="acc-status"
+                      value={accountForm.status}
+                      onChange={(e) =>
+                        setAccountForm({
+                          ...accountForm,
+                          status: e.target.value as UserStatus,
+                        })
+                      }
+                      className="w-full px-3 py-2 rounded-lg border border-[#14283F]/20 bg-white"
+                    >
+                      <option value="Active">Active (Aktif)</option>
+                      <option value="Suspended">Suspended (Ditangguhkan)</option>
+                      <option value="Archived">Archived (Diarsipkan)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-[#14283F]/10">
+                  <button
+                    type="button"
+                    onClick={() => setIsAccountModalOpen(false)}
+                    className="px-4 py-2 rounded-lg border border-[#14283F]/20 font-semibold"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 rounded-lg bg-[#087451] hover:bg-[#065d40] text-white font-semibold"
+                  >
+                    Simpan ID &amp; Password Akun
                   </button>
                 </div>
               </form>

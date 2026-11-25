@@ -636,3 +636,89 @@ export function resolveAppsScriptWebAppUrl(
   return DEFAULT_APPS_SCRIPT_WEB_APP_URL;
 }
 
+/**
+ * Validates updates or creation of user account ID (username), email, and password.
+ */
+export function validateAccountCredentialsUpdate(params: {
+  users: Pick<UserAccount, 'id' | 'username' | 'email'>[];
+  targetUserId?: string;
+  username: string;
+  email: string;
+  password?: string;
+  requirePassword?: boolean;
+}): { valid: boolean; error?: string; cleanUsername: string; cleanEmail: string } {
+  const cleanUsername = (params.username || '').trim().toLowerCase().replace(/\s+/g, '_');
+  const cleanEmail = (params.email || '').trim().toLowerCase();
+  const cleanPass = (params.password || '').trim();
+
+  if (!cleanUsername || cleanUsername.length < 3) {
+    return {
+      valid: false,
+      error: 'ID Login (Username) wajib diisi minimal 3 karakter.',
+      cleanUsername,
+      cleanEmail,
+    };
+  }
+
+  if (!cleanEmail || !cleanEmail.includes('@')) {
+    return {
+      valid: false,
+      error: 'Alamat email tidak valid.',
+      cleanUsername,
+      cleanEmail,
+    };
+  }
+
+  const duplicateUsername = params.users.find(
+    (u) =>
+      u.id !== params.targetUserId &&
+      u.username.trim().toLowerCase() === cleanUsername
+  );
+  if (duplicateUsername) {
+    return {
+      valid: false,
+      error: `ID Login "${cleanUsername}" sudah digunakan oleh akun lain.`,
+      cleanUsername,
+      cleanEmail,
+    };
+  }
+
+  const duplicateEmail = params.users.find(
+    (u) =>
+      u.id !== params.targetUserId &&
+      u.email.trim().toLowerCase() === cleanEmail
+  );
+  if (duplicateEmail) {
+    return {
+      valid: false,
+      error: `Email "${cleanEmail}" sudah terdaftar pada akun lain.`,
+      cleanUsername,
+      cleanEmail,
+    };
+  }
+
+  if (params.requirePassword && cleanPass.length < 4) {
+    return {
+      valid: false,
+      error: 'Password wajib diisi minimal 4 karakter.',
+      cleanUsername,
+      cleanEmail,
+    };
+  }
+
+  if (cleanPass.length > 0 && cleanPass.length < 4) {
+    return {
+      valid: false,
+      error: 'Password baru minimal terdiri dari 4 karakter.',
+      cleanUsername,
+      cleanEmail,
+    };
+  }
+
+  return {
+    valid: true,
+    cleanUsername,
+    cleanEmail,
+  };
+}
+

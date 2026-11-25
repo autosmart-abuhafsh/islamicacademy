@@ -25,6 +25,7 @@ import {
   IslamicSectionDivider,
 } from './IslamicOrnament';
 import { LibraryModule } from './LibraryModule';
+import { ScrollReveal } from './ScrollReveal';
 
 export type PublicPageId =
   | 'beranda'
@@ -405,7 +406,7 @@ export function PublicPortal({
               <BerandaCelestialAura spotlightPos={spotlightPos} />
 
               <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                <div className="lg:col-span-8 space-y-4">
+                <ScrollReveal direction="left" className="lg:col-span-8 space-y-4">
                   <div className="flex flex-wrap items-center gap-2 text-xs text-[#C5A45B] font-medium">
                     <Sparkles className="w-3.5 h-3.5 text-[#F8E5A8] animate-pulse shrink-0" />
                     <span>{db.settings.academyName}</span>
@@ -448,10 +449,14 @@ export function PublicPortal({
                       Jelajahi 9 Silsilah Kitab
                     </button>
                   </div>
-                </div>
+                </ScrollReveal>
 
                 {/* Live Institutional Summary Panel */}
-                <div className="lg:col-span-4 bg-[#0D1B2D]/75 backdrop-blur-md border border-[#C5A45B]/45 rounded-xl p-5 sm:p-6 space-y-4 shadow-xl">
+                <ScrollReveal
+                  direction="right"
+                  delay={0.12}
+                  className="lg:col-span-4 bg-[#0D1B2D]/75 backdrop-blur-md border border-[#C5A45B]/45 rounded-xl p-5 sm:p-6 space-y-4 shadow-xl"
+                >
                   <div className="text-xs font-semibold text-[#C5A45B] border-b border-white/10 pb-2 flex items-center justify-between">
                     <span>Profil & Statistik Akademik</span>
                     <span className="inline-block w-2 h-2 rounded-full bg-[#34D399] animate-ping" />
@@ -488,13 +493,16 @@ export function PublicPortal({
                     <div>Zona Waktu: {db.settings.timezone} (WIB)</div>
                     <div className="truncate">Kontak: {db.settings.contactEmail}</div>
                   </div>
-                </div>
+                </ScrollReveal>
               </div>
             </section>
 
             {/* Profil Akademi & Papan Pengumuman */}
             <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className="lg:col-span-7 bg-white rounded-xl p-6 border border-[#14283F]/10 space-y-4">
+              <ScrollReveal
+                direction="left"
+                className="lg:col-span-7 bg-white rounded-xl p-6 border border-[#14283F]/10 space-y-4"
+              >
                 <div className="text-xs font-semibold text-[#087451]">
                   01. Profil Akademi & Manhaj Pembelajaran
                 </div>
@@ -531,10 +539,14 @@ export function PublicPortal({
                     </p>
                   </div>
                 </div>
-              </div>
+              </ScrollReveal>
 
               {/* Papan Pengumuman Resmi */}
-              <div className="lg:col-span-5 bg-white rounded-xl p-6 border border-[#14283F]/10 space-y-4">
+              <ScrollReveal
+                direction="right"
+                delay={0.1}
+                className="lg:col-span-5 bg-white rounded-xl p-6 border border-[#14283F]/10 space-y-4"
+              >
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-semibold text-[#087451]">
                     02. Papan Pengumuman Akademik
@@ -562,14 +574,14 @@ export function PublicPortal({
                     </div>
                   ))}
                 </div>
-              </div>
+              </ScrollReveal>
             </section>
 
             <IslamicSectionDivider label="Katalog Program & Jadwal Halaqah" />
 
             {/* Featured Programs Preview */}
             <section className="space-y-4">
-              <div className="flex items-center justify-between">
+              <ScrollReveal direction="left" className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-display font-bold text-[#14283F]">
                     Program Studi & Halaqah Keilmuan
@@ -586,14 +598,16 @@ export function PublicPortal({
                   Lihat Semua Program & Jadwal
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
-              </div>
+              </ScrollReveal>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {db.programs
                   .filter((p) => p.status !== 'Archived')
-                  .map((prg) => (
-                    <div
+                  .map((prg, idx) => (
+                    <ScrollReveal
                       key={prg.id}
+                      direction={idx % 2 === 0 ? 'left' : 'right'}
+                      delay={(idx % 2) * 0.08}
                       className="bg-white rounded-xl p-6 border border-[#14283F]/10 flex flex-col justify-between space-y-4"
                     >
                       <div className="space-y-2">
@@ -637,7 +651,7 @@ export function PublicPortal({
                           Daftar Program Ini
                         </button>
                       </div>
-                    </div>
+                    </ScrollReveal>
                   ))}
               </div>
             </section>
@@ -647,7 +661,10 @@ export function PublicPortal({
         {/* PAGE 2: KATALOG PROGRAM, KELAS & JADWAL */}
         {activePage === 'program' && (
           <div className="space-y-8">
-            <div className="bg-white rounded-xl p-6 border border-[#14283F]/10">
+            <ScrollReveal
+              direction="left"
+              className="bg-white rounded-xl p-6 border border-[#14283F]/10"
+            >
               <div className="text-xs font-semibold text-[#087451]">
                 Katalog Akademik & Kalender Halaqah ({db.settings.timezone})
               </div>
@@ -657,15 +674,17 @@ export function PublicPortal({
               <p className="text-xs text-[#14283F]/75 mt-1">
                 Informasi lengkap program, pengajar pengampu, sisa kuota santri, dan jadwal pertemuan mingguan.
               </p>
-            </div>
+            </ScrollReveal>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {db.classes.map((cls) => {
+              {db.classes.map((cls, idx) => {
                 const prog = db.programs.find((p) => p.id === cls.programId);
                 const teacher = db.teachers.find((t) => t.id === cls.teacherId);
                 return (
-                  <div
+                  <ScrollReveal
                     key={cls.id}
+                    direction={idx % 2 === 0 ? 'left' : 'right'}
+                    delay={(idx % 2) * 0.08}
                     className="bg-white rounded-xl p-6 border border-[#14283F]/10 space-y-3"
                   >
                     <div className="flex items-center justify-between text-xs text-[#14283F]/65">
@@ -705,13 +724,16 @@ export function PublicPortal({
                         Daftar Kelas &rarr;
                       </button>
                     </div>
-                  </div>
+                  </ScrollReveal>
                 );
               })}
             </div>
 
             {/* Tabel Jadwal Pertemuan */}
-            <div className="bg-white rounded-xl p-6 border border-[#14283F]/10 space-y-4">
+            <ScrollReveal
+              direction="right"
+              className="bg-white rounded-xl p-6 border border-[#14283F]/10 space-y-4"
+            >
               <h3 className="text-base font-bold text-[#14283F]">
                 Jadwal Pertemuan Halaqah Terdekat (Zona Waktu: {db.settings.timezone})
               </h3>
@@ -752,7 +774,7 @@ export function PublicPortal({
                   </tbody>
                 </table>
               </div>
-            </div>
+            </ScrollReveal>
           </div>
         )}
 
@@ -770,7 +792,10 @@ export function PublicPortal({
         {/* PAGE 4: FATWA TERVERIFIKASI & TANYA JAWAB TERPUBLIKASI */}
         {activePage === 'fatwa' && (
           <div className="space-y-8">
-            <div className="bg-[#14283F] text-white rounded-xl p-6 border border-[#C5A45B]/40">
+            <ScrollReveal
+              direction="left"
+              className="bg-[#14283F] text-white rounded-xl p-6 border border-[#C5A45B]/40"
+            >
               <div className="text-xs text-[#C5A45B] font-semibold">
                 Pusat Dokumentasi Fatwa & Bahtsul Masail Ilmiah
               </div>
@@ -780,7 +805,7 @@ export function PublicPortal({
               <p className="text-xs sm:text-sm text-[#F5F0E4]/80 mt-1 max-w-3xl">
                 Sesuai standar otoritas keilmuan akademi (PRD Bagian 11), dokumen Fatwa Resmi yang telah diverifikasi Dewan Syariah dipisahkan secara tegas dari rubrik Tanya Jawab Santri. Pertanyaan yang belum dijawab atau masih dalam moderasi tidak ditampilkan di halaman publik.
               </p>
-            </div>
+            </ScrollReveal>
 
             {/* Bagian A: Arsip Fatwa Resmi Terverifikasi */}
             <div className="space-y-4">
@@ -789,9 +814,10 @@ export function PublicPortal({
                 A. Arsip Fatwa Resmi Terverifikasi ({verifiedFatwas.length})
               </h3>
               <div className="space-y-4">
-                {verifiedFatwas.map((ftw) => (
-                  <article
+                {verifiedFatwas.map((ftw, idx) => (
+                  <ScrollReveal
                     key={ftw.id}
+                    direction={idx % 2 === 0 ? 'left' : 'right'}
                     className="bg-white rounded-xl p-6 border border-[#14283F]/10 space-y-3"
                   >
                     <div className="flex flex-wrap items-center gap-2 text-xs text-[#14283F]/65">
@@ -837,7 +863,7 @@ export function PublicPortal({
                         Rujukan Kitab: {ftw.kitabReferences.join(', ')}
                       </div>
                     </div>
-                  </article>
+                  </ScrollReveal>
                 ))}
               </div>
             </div>
@@ -851,9 +877,10 @@ export function PublicPortal({
                 B. Arsip Jawaban Forum Keilmuan Terpublikasi ({publishedAnswers.length})
               </h3>
               <div className="space-y-4">
-                {publishedAnswers.map((q) => (
-                  <div
+                {publishedAnswers.map((q, idx) => (
+                  <ScrollReveal
                     key={q.id}
+                    direction={idx % 2 === 0 ? 'right' : 'left'}
                     className="bg-white rounded-xl p-6 border border-[#14283F]/10 space-y-3"
                   >
                     <div className="flex items-center gap-2 text-xs text-[#14283F]/60">
@@ -877,7 +904,7 @@ export function PublicPortal({
                         {q.answerText}
                       </p>
                     </div>
-                  </div>
+                  </ScrollReveal>
                 ))}
               </div>
             </div>
@@ -886,7 +913,10 @@ export function PublicPortal({
 
         {/* PAGE 5: PENDAFTARAN SANTRI BARU */}
         {activePage === 'pendaftaran' && (
-          <div className="max-w-3xl mx-auto bg-white rounded-2xl p-6 sm:p-8 border border-[#14283F]/10 space-y-6">
+          <ScrollReveal
+            direction="left"
+            className="max-w-3xl mx-auto bg-white rounded-2xl p-6 sm:p-8 border border-[#14283F]/10 space-y-6"
+          >
             <div>
               <div className="text-xs font-semibold text-[#087451]">
                 Penerimaan Santri Baru (Admission Management)
@@ -1074,7 +1104,7 @@ export function PublicPortal({
                 </button>
               </div>
             </form>
-          </div>
+          </ScrollReveal>
         )}
       </main>
 

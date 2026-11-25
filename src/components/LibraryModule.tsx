@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ArrowRight,
   BookOpen,
@@ -63,6 +63,10 @@ export function LibraryModule({
   const [subView, setSubView] = useState<'catalog' | 'silsilah' | 'pathway' | 'verification'>(
     initialSubView
   );
+
+  useEffect(() => {
+    setSubView(initialSubView);
+  }, [initialSubView]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('ALL');

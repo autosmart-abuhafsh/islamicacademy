@@ -114,7 +114,7 @@ export default function App() {
     if (!loadingOverlay.active) return;
     const timer = setTimeout(() => {
       setLoadingOverlay((prev) => ({ ...prev, active: false }));
-    }, 620);
+    }, 280);
     return () => clearTimeout(timer);
   }, [loadingOverlay.active]);
 
@@ -270,6 +270,14 @@ export default function App() {
       // Optimistically update UI & cache immediately
       setDb(nextDatabase);
       persistLocalCache(nextDatabase);
+      if (currentUser) {
+        const refreshedSelf = nextDatabase.users.find(
+          (u) => u.id === currentUser.id
+        );
+        if (refreshedSelf) {
+          setCurrentUser(refreshedSelf);
+        }
+      }
 
       try {
         const res = await fetch('/api/db/mutate', {

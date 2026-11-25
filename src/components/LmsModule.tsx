@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Award,
   BookOpen,
@@ -69,6 +69,10 @@ export function LmsModule({
   onNotify,
 }: LmsModuleProps) {
   const [activeTab, setActiveTab] = useState(initialTab);
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   const currentStudent = db.students.find((s) => s.userId === currentUser.id);
   const currentTeacher = db.teachers.find((t) => t.userId === currentUser.id);
