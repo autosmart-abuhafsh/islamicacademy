@@ -43,9 +43,11 @@ import {
 } from '../utils/academicLogic';
 import { IslamicAcademyLogo } from './IslamicOrnament';
 import { KnowledgeReportsAndSettings } from './KnowledgeReportsAndSettings';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { LibraryModule } from './LibraryModule';
 import { LmsModule } from './LmsModule';
 import { UsersAndAcademicAdmin } from './UsersAndAcademicAdmin';
+import { AppLanguage } from '../utils/i18n';
 
 type WorkspaceMenuId =
   | 'dashboard'
@@ -78,6 +80,8 @@ interface PortalWorkspaceProps {
   currentUser: UserAccount;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
+  language: AppLanguage;
+  onChangeLanguage: (nextLang: AppLanguage) => void;
   onSwitchUser: (user: UserAccount) => void;
   onLogout: () => void;
   onBackToPublic: () => void;
@@ -102,6 +106,8 @@ export function PortalWorkspace({
   currentUser,
   theme,
   onToggleTheme,
+  language,
+  onChangeLanguage,
   onSwitchUser,
   onLogout,
   onBackToPublic,
@@ -402,12 +408,16 @@ export function PortalWorkspace({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 min-w-0">
+            <LanguageSwitcher
+              language={language}
+              onChangeLanguage={onChangeLanguage}
+            />
             <button
               type="button"
               onClick={() => setActiveMenu('profile')}
               title="Buka Profil Saya"
-              className="max-w-[165px] sm:max-w-[260px] truncate px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#14283F]/15 bg-[#F5F0E4]/60 text-[#14283F] hover:border-[#087451] flex items-center gap-1.5"
+              className="max-w-[140px] sm:max-w-[230px] truncate px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#14283F]/15 bg-[#F5F0E4]/60 text-[#14283F] hover:border-[#087451] flex items-center gap-1.5"
             >
               <User className="w-3.5 h-3.5 text-[#087451] shrink-0" />
               <span className="truncate">

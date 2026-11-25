@@ -26,6 +26,8 @@ import {
 } from './IslamicOrnament';
 import { LibraryModule } from './LibraryModule';
 import { ScrollReveal } from './ScrollReveal';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { AppLanguage } from '../utils/i18n';
 
 export type PublicPageId =
   | 'beranda'
@@ -39,6 +41,8 @@ interface PublicPortalProps {
   currentUser: UserAccount | null;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
+  language: AppLanguage;
+  onChangeLanguage: (nextLang: AppLanguage) => void;
   onLoginSuccess: (user: UserAccount) => void;
   onEnterWorkspace: () => void;
   onMutate: (params: {
@@ -62,6 +66,8 @@ export function PublicPortal({
   currentUser,
   theme,
   onToggleTheme,
+  language,
+  onChangeLanguage,
   onLoginSuccess,
   onEnterWorkspace,
   onMutate,
@@ -306,8 +312,12 @@ export function PublicPortal({
           </button>
         </nav>
 
-        {/* Zone 3: Dark/Light Theme Toggle + Primary Portal Action */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        {/* Zone 3: Language Switcher + Dark/Light Theme Toggle + Primary Portal Action */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <LanguageSwitcher
+            language={language}
+            onChangeLanguage={onChangeLanguage}
+          />
           <button
             type="button"
             onClick={onToggleTheme}

@@ -12,6 +12,11 @@ import {
   UserAccount,
 } from './types/database';
 import { resolveAppsScriptWebAppUrl } from './utils/academicLogic';
+import {
+  AppLanguage,
+  applyLanguageToDom,
+  DEFAULT_LANGUAGE,
+} from './utils/i18n';
 
 interface ToastMessage {
   id: number;
@@ -21,6 +26,7 @@ interface ToastMessage {
 
 const LOCAL_DB_STORAGE_KEY = 'iap_cached_database_v1';
 const THEME_STORAGE_KEY = 'iap_theme_mode';
+const LANGUAGE_STORAGE_KEY = 'iap_language_mode';
 const ENV_APPS_SCRIPT_URL =
   typeof import.meta !== 'undefined' && import.meta.env
     ? (import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined)
@@ -80,6 +86,55 @@ export default function App() {
   const handleToggleTheme = useCallback(() => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
   }, []);
+
+  const [language, setLanguage] = useState<AppLanguage>(() => {
+    try {
+      const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if (saved === 'id' || saved === 'en' || saved === 'ar') return saved;
+    } catch {
+      // Ignore
+    }
+    return DEFAULT_LANGUAGE;
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.lang = language;
+    root.setAttribute('data-lang', language);
+    try {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+    } catch {
+      // Ignore
+    }
+
+    const appRoot = document.getElementById('root') || document.body;
+    let isApplying = false;
+
+    const runTranslation = () => {
+      if (isApplying) return;
+      isApplying = true;
+      try {
+        applyLanguageToDom(appRoot, language);
+      } finally {
+        isApplying = false;
+      }
+    };
+
+    runTranslation();
+
+    const observer = new MutationObserver(() => {
+      runTranslation();
+    });
+
+    observer.observe(appRoot, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [language]);
 
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
     const params = new URLSearchParams(window.location.search);
@@ -493,6 +548,8 @@ export default function App() {
           currentUser={currentUser}
           theme={theme}
           onToggleTheme={handleToggleTheme}
+          language={language}
+          onChangeLanguage={setLanguage}
           onSwitchUser={(nextUser) => {
             setCurrentUser(nextUser);
             notify(
@@ -538,6 +595,8 @@ export default function App() {
           currentUser={currentUser}
           theme={theme}
           onToggleTheme={handleToggleTheme}
+          language={language}
+          onChangeLanguage={setLanguage}
           onLoginSuccess={(user) => {
             setCurrentUser(user);
             triggerPortalTransition(

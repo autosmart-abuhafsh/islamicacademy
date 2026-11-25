@@ -22,6 +22,11 @@ import {
   RoleDefinition,
   UserAccount,
 } from '../types/database';
+import {
+  DEFAULT_LANGUAGE,
+  LANGUAGE_OPTIONS,
+  translateTextToLanguage,
+} from './i18n';
 
 const mockRoles: RoleDefinition[] = [
   {
@@ -413,4 +418,35 @@ test('validateAccountCredentialsUpdate enforces unique ID/username, email, and p
   });
   assert.equal(shortPassRes.valid, false);
 });
+
+test('3-language i18n engine defaults to Bahasa Indonesia and translates to English and Arabic Fusha', () => {
+  assert.equal(DEFAULT_LANGUAGE, 'id');
+  assert.equal(LANGUAGE_OPTIONS.length, 3);
+  assert.deepEqual(
+    LANGUAGE_OPTIONS.map((o) => o.id),
+    ['id', 'en', 'ar']
+  );
+
+  // Default Indonesian preserves original string
+  assert.equal(translateTextToLanguage('Beranda', 'id'), 'Beranda');
+
+  // English translation
+  assert.equal(translateTextToLanguage('Beranda', 'en'), 'Home');
+  assert.equal(
+    translateTextToLanguage('Manajemen Akun & Password', 'en'),
+    'Account & Password Management'
+  );
+
+  // Arabic Fusha translation
+  assert.equal(translateTextToLanguage('Beranda', 'ar'), 'الرئيسية');
+  assert.equal(
+    translateTextToLanguage('Manajemen Akun & Password', 'ar'),
+    'إدارة الحسابات وكلمات المرور'
+  );
+  assert.equal(
+    translateTextToLanguage('Data Santri (3)', 'ar'),
+    'بيانات الطلاب (3)'
+  );
+});
+
 
